@@ -39,19 +39,19 @@ public class EmprendedorController {
     }
     
     @GetMapping("/mi-emprendedor")
-    @PreAuthorize("hasRole('ROLE_EMPRENDEDOR')")
+    @PreAuthorize("hasAnyRole('ROLE_EMPRENDEDOR', 'ROLE_ADMIN')")
     public ResponseEntity<EmprendedorResponse> getMiEmprendedor() {
         return ResponseEntity.ok(emprendedorService.getEmprendedorByUsuario());
     }
     
     @PostMapping
-    @PreAuthorize("hasRole('ROLE_EMPRENDEDOR')")
+    @PreAuthorize("hasAnyRole('ROLE_EMPRENDEDOR', 'ROLE_ADMIN')")
     public ResponseEntity<EmprendedorResponse> createEmprendedor(@Valid @RequestBody EmprendedorRequest emprendedorRequest) {
         return ResponseEntity.ok(emprendedorService.createEmprendedor(emprendedorRequest));
     }
     
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_EMPRENDEDOR')")
+    @PreAuthorize("hasAnyRole('ROLE_EMPRENDEDOR', 'ROLE_ADMIN')")
     public ResponseEntity<EmprendedorResponse> updateEmprendedor(
             @PathVariable Long id,
             @Valid @RequestBody EmprendedorRequest emprendedorRequest) {

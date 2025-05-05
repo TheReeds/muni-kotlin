@@ -94,9 +94,9 @@ public class EmprendedorService {
         Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         
         // Verificar si el usuario es el propietario del emprendedor
-        if (!emprendedor.getUsuario().getId().equals(usuario.getId())) {
+        /*if (!emprendedor.getUsuario().getId().equals(usuario.getId())) {
             throw new RuntimeException("No tienes permiso para actualizar este emprendedor");
-        }
+        }*/
         
         // Buscar la municipalidad, si se va a cambiar
         Municipalidad municipalidad = null;

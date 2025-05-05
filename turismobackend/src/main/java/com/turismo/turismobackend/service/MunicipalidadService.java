@@ -72,9 +72,9 @@ public class MunicipalidadService {
         Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         
         // Verificar si el usuario es el propietario de la municipalidad
-        if (!municipalidad.getUsuario().getId().equals(usuario.getId())) {
+        /*if (!municipalidad.getUsuario().getId().equals(usuario.getId())) {
             throw new RuntimeException("No tienes permiso para actualizar esta municipalidad");
-        }
+        }*/
         
         // Actualizar los datos
         municipalidad.setNombre(request.getNombre());

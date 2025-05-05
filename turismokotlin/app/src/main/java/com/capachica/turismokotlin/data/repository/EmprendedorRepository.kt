@@ -55,21 +55,7 @@ class EmprendedorRepository(
 
                 // Guardamos en la base de datos local
                 withContext(Dispatchers.IO) {
-                    // Guardamos los emprendedores
-                    val entities = emprendedores.map { EmprendedorEntity.fromModel(it) }
-                    emprendedorDao.insertEmprendedores(entities)
-
-                    // Guardamos las relaciones
-                    val relations = emprendedores.filter { it.municipalidad != null }
-                        .map {
-                            EmprendedorMunicipalidadRef(
-                                emprendedorId = it.id,
-                                municipalidadId = it.municipalidad!!.id
-                            )
-                        }
-                    emprendedorMunicipalidadDao.insertAll(relations)
-
-                    // Guardamos las municipalidades básicas
+                    // CORRECCIÓN: Primero guardamos las municipalidades básicas
                     val municipalidades = emprendedores
                         .mapNotNull { it.municipalidad }
                         .distinctBy { it.id }
@@ -90,6 +76,20 @@ class EmprendedorRepository(
                     if (municipalidades.isNotEmpty()) {
                         municipalidadDao.insertMunicipalidades(municipalidades)
                     }
+
+                    // Después guardamos los emprendedores
+                    val entities = emprendedores.map { EmprendedorEntity.fromModel(it) }
+                    emprendedorDao.insertEmprendedores(entities)
+
+                    // Por último guardamos las relaciones
+                    val relations = emprendedores.filter { it.municipalidad != null }
+                        .map {
+                            EmprendedorMunicipalidadRef(
+                                emprendedorId = it.id,
+                                municipalidadId = it.municipalidad!!.id
+                            )
+                        }
+                    emprendedorMunicipalidadDao.insertAll(relations)
                 }
 
                 emit(Result.Success(emprendedores))
@@ -137,21 +137,9 @@ class EmprendedorRepository(
 
                     // Actualizamos la base de datos local
                     withContext(Dispatchers.IO) {
-                        // Guardamos el emprendedor
-                        val entity = EmprendedorEntity.fromModel(emprendedor)
-                        emprendedorDao.insertEmprendedor(entity)
-
-                        // Guardamos la relación si existe municipalidad
+                        // CORRECCIÓN: Primero guardamos la municipalidad si existe
                         emprendedor.municipalidad?.let { municipalidad ->
-                            // Guardamos la relación
-                            emprendedorMunicipalidadDao.insert(
-                                EmprendedorMunicipalidadRef(
-                                    emprendedorId = emprendedor.id,
-                                    municipalidadId = municipalidad.id
-                                )
-                            )
-
-                            // También guardamos la municipalidad básica
+                            // Guardamos la municipalidad básica
                             municipalidadDao.insertMunicipalidad(
                                 MunicipalidadEntity(
                                     id = municipalidad.id,
@@ -164,6 +152,21 @@ class EmprendedorRepository(
                                     sitioWeb = null,
                                     descripcion = null,
                                     usuarioId = 0       // No tenemos esta info
+                                )
+                            )
+                        }
+
+                        // Después guardamos el emprendedor
+                        val entity = EmprendedorEntity.fromModel(emprendedor)
+                        emprendedorDao.insertEmprendedor(entity)
+
+                        // Finalmente guardamos la relación si existe municipalidad
+                        emprendedor.municipalidad?.let { municipalidad ->
+                            // Guardamos la relación
+                            emprendedorMunicipalidadDao.insert(
+                                EmprendedorMunicipalidadRef(
+                                    emprendedorId = emprendedor.id,
+                                    municipalidadId = municipalidad.id
                                 )
                             )
                         }
@@ -216,18 +219,42 @@ class EmprendedorRepository(
 
                     // Guardamos en la base de datos local
                     withContext(Dispatchers.IO) {
+                        // CORRECCIÓN: Primero nos aseguramos de que existe la municipalidad
+                        // Buscamos si ya tenemos la municipalidad
+                        val municipalidadEntity = municipalidadDao.getMunicipalidadById(municipalidadId).firstOrNull()
+
+                        // Si no la tenemos pero tenemos al menos un emprendedor con esa info, la creamos
+                        if (municipalidadEntity == null) {
+                            val primerEmprendedor = emprendedores.firstOrNull { it.municipalidad != null }
+                            primerEmprendedor?.municipalidad?.let { municipalidad ->
+                                municipalidadDao.insertMunicipalidad(
+                                    MunicipalidadEntity(
+                                        id = municipalidad.id,
+                                        nombre = municipalidad.nombre,
+                                        departamento = "",  // Info parcial
+                                        provincia = "",     // Info parcial
+                                        distrito = municipalidad.distrito,
+                                        direccion = null,
+                                        telefono = null,
+                                        sitioWeb = null,
+                                        descripcion = null,
+                                        usuarioId = 0       // No tenemos esta info
+                                    )
+                                )
+                            }
+                        }
+
                         // Guardamos los emprendedores
                         val entities = emprendedores.map { EmprendedorEntity.fromModel(it) }
                         emprendedorDao.insertEmprendedores(entities)
 
-                        // Guardamos las relaciones
-                        val relations = emprendedores.filter { it.municipalidad != null }
-                            .map {
-                                EmprendedorMunicipalidadRef(
-                                    emprendedorId = it.id,
-                                    municipalidadId = it.municipalidad!!.id
-                                )
-                            }
+                        // Por último guardamos las relaciones
+                        val relations = emprendedores.map {
+                            EmprendedorMunicipalidadRef(
+                                emprendedorId = it.id,
+                                municipalidadId = municipalidadId
+                            )
+                        }
                         emprendedorMunicipalidadDao.insertAll(relations)
                     }
 
@@ -289,21 +316,7 @@ class EmprendedorRepository(
 
                     // Guardamos en la base de datos local
                     withContext(Dispatchers.IO) {
-                        // Guardamos los emprendedores
-                        val entities = emprendedores.map { EmprendedorEntity.fromModel(it) }
-                        emprendedorDao.insertEmprendedores(entities)
-
-                        // Guardamos las relaciones
-                        val relations = emprendedores.filter { it.municipalidad != null }
-                            .map {
-                                EmprendedorMunicipalidadRef(
-                                    emprendedorId = it.id,
-                                    municipalidadId = it.municipalidad!!.id
-                                )
-                            }
-                        emprendedorMunicipalidadDao.insertAll(relations)
-
-                        // Y también guardamos las municipalidades básicas
+                        // CORRECCIÓN: Primero guardamos las municipalidades básicas
                         val municipalidades = emprendedores
                             .mapNotNull { it.municipalidad }
                             .distinctBy { it.id }
@@ -324,6 +337,20 @@ class EmprendedorRepository(
                         if (municipalidades.isNotEmpty()) {
                             municipalidadDao.insertMunicipalidades(municipalidades)
                         }
+
+                        // Después guardamos los emprendedores
+                        val entities = emprendedores.map { EmprendedorEntity.fromModel(it) }
+                        emprendedorDao.insertEmprendedores(entities)
+
+                        // Por último guardamos las relaciones
+                        val relations = emprendedores.filter { it.municipalidad != null }
+                            .map {
+                                EmprendedorMunicipalidadRef(
+                                    emprendedorId = it.id,
+                                    municipalidadId = it.municipalidad!!.id
+                                )
+                            }
+                        emprendedorMunicipalidadDao.insertAll(relations)
                     }
 
                     // Emitimos los datos actualizados
@@ -367,21 +394,8 @@ class EmprendedorRepository(
 
                     // Guardamos en la base de datos local
                     withContext(Dispatchers.IO) {
-                        // Guardamos el emprendedor
-                        val entity = EmprendedorEntity.fromModel(emprendedor)
-                        emprendedorDao.insertEmprendedor(entity)
-
-                        // Guardamos la relación si existe municipalidad
+                        // CORRECCIÓN: Primero guardamos la municipalidad si existe
                         emprendedor.municipalidad?.let { municipalidad ->
-                            // Guardamos la relación
-                            emprendedorMunicipalidadDao.insert(
-                                EmprendedorMunicipalidadRef(
-                                    emprendedorId = emprendedor.id,
-                                    municipalidadId = municipalidad.id
-                                )
-                            )
-
-                            // También guardamos la municipalidad básica
                             municipalidadDao.insertMunicipalidad(
                                 MunicipalidadEntity(
                                     id = municipalidad.id,
@@ -394,6 +408,20 @@ class EmprendedorRepository(
                                     sitioWeb = null,
                                     descripcion = null,
                                     usuarioId = 0       // No tenemos esta info
+                                )
+                            )
+                        }
+
+                        // Después guardamos el emprendedor
+                        val entity = EmprendedorEntity.fromModel(emprendedor)
+                        emprendedorDao.insertEmprendedor(entity)
+
+                        // Por último la relación si existe municipalidad
+                        emprendedor.municipalidad?.let { municipalidad ->
+                            emprendedorMunicipalidadDao.insert(
+                                EmprendedorMunicipalidadRef(
+                                    emprendedorId = emprendedor.id,
+                                    municipalidadId = municipalidad.id
                                 )
                             )
                         }
@@ -426,35 +454,53 @@ class EmprendedorRepository(
 
                     // Guardar en la base de datos local
                     withContext(Dispatchers.IO) {
-                        // Guardamos el emprendedor
-                        emprendedorDao.insertEmprendedor(EmprendedorEntity.fromModel(emprendedor))
-
-                        // Guardamos la relación si existe municipalidad
-                        emprendedor.municipalidad?.let { municipalidad ->
-                            // Guardamos la relación
-                            emprendedorMunicipalidadDao.insert(
-                                EmprendedorMunicipalidadRef(
-                                    emprendedorId = emprendedor.id,
-                                    municipalidadId = municipalidad.id
-                                )
-                            )
-
-                            // También guardamos la municipalidad básica
+                        // CORRECCIÓN: Primero nos aseguramos que exista la municipalidad
+                        // Si no tenemos datos de la municipalidad en el objeto, creamos una entidad mínima
+                        val municipalidadExists = municipalidadDao.getMunicipalidadById(request.municipalidadId).firstOrNull() != null
+                        if (!municipalidadExists) {
+                            // Creamos una municipalidad básica para satisfacer la restricción de clave foránea
                             municipalidadDao.insertMunicipalidad(
                                 MunicipalidadEntity(
-                                    id = municipalidad.id,
-                                    nombre = municipalidad.nombre,
-                                    departamento = "",  // No tenemos esta info
-                                    provincia = "",     // No tenemos esta info
-                                    distrito = municipalidad.distrito,
+                                    id = request.municipalidadId,
+                                    nombre = "Municipalidad ID ${request.municipalidadId}",  // Nombre provisional
+                                    departamento = "",
+                                    provincia = "",
+                                    distrito = "",
                                     direccion = null,
                                     telefono = null,
                                     sitioWeb = null,
                                     descripcion = null,
-                                    usuarioId = 0       // No tenemos esta info
+                                    usuarioId = 0
                                 )
                             )
                         }
+
+                        // CORRECCIÓN: Usamos el ID de municipalidad del request
+                        // Creamos una entidad con el ID de municipalidad correcto
+                        val entity = EmprendedorEntity(
+                            id = emprendedor.id,
+                            nombreEmpresa = emprendedor.nombreEmpresa,
+                            rubro = emprendedor.rubro,
+                            direccion = emprendedor.direccion,
+                            telefono = emprendedor.telefono,
+                            email = emprendedor.email,
+                            sitioWeb = emprendedor.sitioWeb,
+                            descripcion = emprendedor.descripcion,
+                            productos = emprendedor.productos,
+                            servicios = emprendedor.servicios,
+                            usuarioId = emprendedor.usuarioId,
+                            municipalidadId = request.municipalidadId,  // Usamos el ID del request
+                            timestampUltimaActualizacion = System.currentTimeMillis()
+                        )
+                        emprendedorDao.insertEmprendedor(entity)
+
+                        // Creamos la relación
+                        emprendedorMunicipalidadDao.insert(
+                            EmprendedorMunicipalidadRef(
+                                emprendedorId = emprendedor.id,
+                                municipalidadId = request.municipalidadId  // Usamos el ID del request
+                            )
+                        )
                     }
 
                     emit(Result.Success(emprendedor))
@@ -481,39 +527,56 @@ class EmprendedorRepository(
 
                     // Actualizamos en la base de datos local
                     withContext(Dispatchers.IO) {
-                        // Actualizamos el emprendedor
-                        val entity = EmprendedorEntity.fromModel(emprendedor)
-                        emprendedorDao.updateEmprendedor(entity)
-
-                        // Actualizamos la relación si existe municipalidad
-                        emprendedor.municipalidad?.let { municipalidad ->
-                            // Borramos relaciones anteriores
-                            emprendedorMunicipalidadDao.deleteByEmprendedorId(emprendedor.id)
-
-                            // Creamos la nueva relación
-                            emprendedorMunicipalidadDao.insert(
-                                EmprendedorMunicipalidadRef(
-                                    emprendedorId = emprendedor.id,
-                                    municipalidadId = municipalidad.id
-                                )
-                            )
-
-                            // También guardamos la municipalidad básica
+                        // CORRECCIÓN: Primero nos aseguramos que exista la municipalidad
+                        val municipalidadExists = municipalidadDao.getMunicipalidadById(request.municipalidadId).firstOrNull() != null
+                        if (!municipalidadExists) {
+                            // Creamos una municipalidad básica para satisfacer la restricción de clave foránea
                             municipalidadDao.insertMunicipalidad(
                                 MunicipalidadEntity(
-                                    id = municipalidad.id,
-                                    nombre = municipalidad.nombre,
-                                    departamento = "",  // No tenemos esta info
-                                    provincia = "",     // No tenemos esta info
-                                    distrito = municipalidad.distrito,
+                                    id = request.municipalidadId,
+                                    nombre = "Municipalidad ID ${request.municipalidadId}",  // Nombre provisional
+                                    departamento = "",
+                                    provincia = "",
+                                    distrito = "",
                                     direccion = null,
                                     telefono = null,
                                     sitioWeb = null,
                                     descripcion = null,
-                                    usuarioId = 0       // No tenemos esta info
+                                    usuarioId = 0
                                 )
                             )
                         }
+
+                        // CORRECCIÓN: Usamos el ID de municipalidad del request
+                        // Actualizamos el emprendedor con el ID de municipalidad correcto
+                        val entity = EmprendedorEntity(
+                            id = emprendedor.id,
+                            nombreEmpresa = emprendedor.nombreEmpresa,
+                            rubro = emprendedor.rubro,
+                            direccion = emprendedor.direccion,
+                            telefono = emprendedor.telefono,
+                            email = emprendedor.email,
+                            sitioWeb = emprendedor.sitioWeb,
+                            descripcion = emprendedor.descripcion,
+                            productos = emprendedor.productos,
+                            servicios = emprendedor.servicios,
+                            usuarioId = emprendedor.usuarioId,
+                            municipalidadId = request.municipalidadId,  // Usamos el ID del request
+                            timestampUltimaActualizacion = System.currentTimeMillis()
+                        )
+                        emprendedorDao.updateEmprendedor(entity)
+
+                        // Actualizamos la relación
+                        // Borramos relaciones anteriores
+                        emprendedorMunicipalidadDao.deleteByEmprendedorId(emprendedor.id)
+
+                        // Creamos la nueva relación
+                        emprendedorMunicipalidadDao.insert(
+                            EmprendedorMunicipalidadRef(
+                                emprendedorId = emprendedor.id,
+                                municipalidadId = request.municipalidadId  // Usamos el ID del request
+                            )
+                        )
                     }
 
                     // Emitimos los datos

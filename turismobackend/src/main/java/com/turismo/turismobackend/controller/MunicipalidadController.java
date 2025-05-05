@@ -44,19 +44,19 @@ public class MunicipalidadController {
     }
     
     @GetMapping("/mi-municipalidad")
-    @PreAuthorize("hasRole('ROLE_MUNICIPALIDAD')")
+    @PreAuthorize("hasAnyRole('ROLE_MUNICIPALIDAD', 'ROLE_ADMIN')")
     public ResponseEntity<MunicipalidadResponse> getMiMunicipalidad() {
         return ResponseEntity.ok(municipalidadService.getMunicipalidadByUsuario());
     }
     
     @PostMapping
-    @PreAuthorize("hasRole('ROLE_MUNICIPALIDAD')")
+    @PreAuthorize("hasAnyRole('ROLE_MUNICIPALIDAD', 'ROLE_ADMIN')")
     public ResponseEntity<MunicipalidadResponse> createMunicipalidad(@Valid @RequestBody MunicipalidadRequest municipalidadRequest) {
         return ResponseEntity.ok(municipalidadService.createMunicipalidad(municipalidadRequest));
     }
     
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_MUNICIPALIDAD')")
+    @PreAuthorize("hasAnyRole('ROLE_MUNICIPALIDAD', 'ROLE_ADMIN')")
     public ResponseEntity<MunicipalidadResponse> updateMunicipalidad(
             @PathVariable Long id,
             @Valid @RequestBody MunicipalidadRequest municipalidadRequest) {
