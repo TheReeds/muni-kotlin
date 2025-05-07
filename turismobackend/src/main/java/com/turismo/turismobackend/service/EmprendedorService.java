@@ -3,12 +3,13 @@ package com.turismo.turismobackend.service;
 import com.turismo.turismobackend.dto.request.EmprendedorRequest;
 import com.turismo.turismobackend.dto.response.EmprendedorResponse;
 import com.turismo.turismobackend.exception.ResourceNotFoundException;
+import com.turismo.turismobackend.model.Categoria;
 import com.turismo.turismobackend.model.Emprendedor;
 import com.turismo.turismobackend.model.Municipalidad;
 import com.turismo.turismobackend.model.Usuario;
+import com.turismo.turismobackend.repository.CategoriaRepository;
 import com.turismo.turismobackend.repository.EmprendedorRepository;
 import com.turismo.turismobackend.repository.MunicipalidadRepository;
-import com.turismo.turismobackend.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,7 @@ public class EmprendedorService {
     
     private final EmprendedorRepository emprendedorRepository;
     private final MunicipalidadRepository municipalidadRepository;
-    private final UsuarioRepository usuarioRepository;
+    private final CategoriaRepository categoriaRepository;
     
     public List<EmprendedorResponse> getAllEmprendedores() {
         return emprendedorRepository.findAll().stream()
@@ -52,6 +53,15 @@ public class EmprendedorService {
                 .collect(Collectors.toList());
     }
     
+    public List<EmprendedorResponse> getEmprendedoresByCategoria(Long categoriaId) {
+        Categoria categoria = categoriaRepository.findById(categoriaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Categoría", "id", categoriaId));
+        
+        return emprendedorRepository.findByCategoria(categoria).stream()
+                .map(this::mapToEmprendedorResponse)
+                .collect(Collectors.toList());
+    }
+    
     public EmprendedorResponse createEmprendedor(EmprendedorRequest request) {
         // Obtener el usuario autenticado
         Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -65,6 +75,13 @@ public class EmprendedorService {
         Municipalidad municipalidad = municipalidadRepository.findById(request.getMunicipalidadId())
                 .orElseThrow(() -> new ResourceNotFoundException("Municipalidad", "id", request.getMunicipalidadId()));
         
+        // Buscar la categoría si se proporcionó un ID
+        Categoria categoria = null;
+        if (request.getCategoriaId() != null) {
+            categoria = categoriaRepository.findById(request.getCategoriaId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Categoría", "id", request.getCategoriaId()));
+        }
+        
         // Crear nuevo emprendedor
         Emprendedor emprendedor = Emprendedor.builder()
                 .nombreEmpresa(request.getNombreEmpresa())
@@ -77,6 +94,7 @@ public class EmprendedorService {
                 .productos(request.getProductos())
                 .servicios(request.getServicios())
                 .municipalidad(municipalidad)
+                .categoria(categoria)
                 .usuario(usuario)
                 .build();
         
@@ -93,11 +111,6 @@ public class EmprendedorService {
         // Obtener el usuario autenticado
         Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         
-        // Verificar si el usuario es el propietario del emprendedor
-        /*if (!emprendedor.getUsuario().getId().equals(usuario.getId())) {
-            throw new RuntimeException("No tienes permiso para actualizar este emprendedor");
-        }*/
-        
         // Buscar la municipalidad, si se va a cambiar
         Municipalidad municipalidad = null;
         if (!emprendedor.getMunicipalidad().getId().equals(request.getMunicipalidadId())) {
@@ -105,6 +118,19 @@ public class EmprendedorService {
                     .orElseThrow(() -> new ResourceNotFoundException("Municipalidad", "id", request.getMunicipalidadId()));
         } else {
             municipalidad = emprendedor.getMunicipalidad();
+        }
+        
+        // Buscar la categoría, si se proporcionó un ID
+        Categoria categoria = null;
+        if (request.getCategoriaId() != null) {
+            // Si se proporciona un ID de categoría diferente al actual o el actual es nulo
+            if (emprendedor.getCategoria() == null || 
+                    !emprendedor.getCategoria().getId().equals(request.getCategoriaId())) {
+                categoria = categoriaRepository.findById(request.getCategoriaId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Categoría", "id", request.getCategoriaId()));
+            } else {
+                categoria = emprendedor.getCategoria();
+            }
         }
         
         // Actualizar los datos
@@ -118,6 +144,7 @@ public class EmprendedorService {
         emprendedor.setProductos(request.getProductos());
         emprendedor.setServicios(request.getServicios());
         emprendedor.setMunicipalidad(municipalidad);
+        emprendedor.setCategoria(categoria); // Puede ser null
         
         emprendedorRepository.save(emprendedor);
         
@@ -160,6 +187,15 @@ public class EmprendedorService {
                 .distrito(emprendedor.getMunicipalidad().getDistrito())
                 .build();
         
+        // Mapear categoría resumida (si existe)
+        EmprendedorResponse.CategoriaResumen categoriaResumen = null;
+        if (emprendedor.getCategoria() != null) {
+            categoriaResumen = EmprendedorResponse.CategoriaResumen.builder()
+                    .id(emprendedor.getCategoria().getId())
+                    .nombre(emprendedor.getCategoria().getNombre())
+                    .build();
+        }
+        
         // Construir respuesta
         return EmprendedorResponse.builder()
                 .id(emprendedor.getId())
@@ -174,6 +210,7 @@ public class EmprendedorService {
                 .servicios(emprendedor.getServicios())
                 .usuarioId(emprendedor.getUsuario().getId())
                 .municipalidad(municipalidadResumen)
+                .categoria(categoriaResumen)
                 .build();
     }
 }

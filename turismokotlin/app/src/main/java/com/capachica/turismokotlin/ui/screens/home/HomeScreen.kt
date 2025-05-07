@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     onNavigateToMunicipalidades: () -> Unit,
     onNavigateToEmprendedores: () -> Unit,
+    onNavigateToCategorias: () -> Unit,
     onLogout: () -> Unit,
     factory: ViewModelFactory
 ) {
@@ -81,6 +82,13 @@ fun HomeScreen(
                 text = "Emprendedores",
                 icon = Icons.Default.Business,
                 onClick = onNavigateToEmprendedores
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            HomeMenuButton(
+                text = "Categorías",
+                icon = Icons.Default.Category,
+                onClick = onNavigateToCategorias
             )
         }
     }

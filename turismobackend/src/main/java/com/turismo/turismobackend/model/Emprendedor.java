@@ -45,6 +45,10 @@ public class Emprendedor {
     @JoinColumn(name = "municipalidad_id")
     private Municipalidad municipalidad;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categoria_id")
+    private Categoria categoria;
+    
     @OneToOne
     @JoinColumn(name = "usuario_id", unique = true)
     private Usuario usuario;

@@ -1,4 +1,4 @@
-package com.capachica.turismokotlin.ui.screens.emprendedor
+package com.capachica.turismokotlin.ui.screens.categorias
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -6,7 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,73 +15,64 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.capachica.turismokotlin.data.model.Emprendedor
+import com.capachica.turismokotlin.data.model.Categoria
 import com.capachica.turismokotlin.data.repository.Result
 import com.capachica.turismokotlin.ui.components.EmptyListPlaceholder
 import com.capachica.turismokotlin.ui.components.ErrorScreen
 import com.capachica.turismokotlin.ui.components.LoadingScreen
 import com.capachica.turismokotlin.ui.components.TurismoAppBar
-import com.capachica.turismokotlin.ui.viewmodel.EmprendedorViewModel
+import com.capachica.turismokotlin.ui.viewmodel.CategoriaViewModel
 import com.capachica.turismokotlin.ui.viewmodel.ViewModelFactory
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EmprendedoresScreen(
-    municipalidadId: Long = 0,
-    categoriaId: Long? = null,
+fun CategoriasScreen(
     onNavigateToDetail: (Long) -> Unit,
     onNavigateToCreate: () -> Unit,
+    onNavigateToEmprendedores: (Long) -> Unit,
     onBack: () -> Unit,
     factory: ViewModelFactory
 ) {
-    val viewModel: EmprendedorViewModel = viewModel(factory = factory)
-    val emprendedoresState by viewModel.emprendedoresState.collectAsState()
+    val viewModel: CategoriaViewModel = viewModel(factory = factory)
+    val categoriasState by viewModel.categoriasState.collectAsState()
     val deleteState by viewModel.deleteState.collectAsState()
 
     // Para mostrar diálogo de confirmación
     val showDeleteConfirmDialog = remember { mutableStateOf(false) }
-    val emprendedorToDelete = remember { mutableStateOf<Emprendedor?>(null) }
+    val categoriaToDelete = remember { mutableStateOf<Categoria?>(null) }
 
     // Scope para lanzar corrutinas
     val scope = rememberCoroutineScope()
 
-    // Cargar datos al inicio o cuando cambie municipalidadId
-    LaunchedEffect(municipalidadId) {
-        if (municipalidadId > 0) {
-            viewModel.getEmprendedoresByMunicipalidad(municipalidadId)
-        } else {
-            viewModel.getAllEmprendedores()
-        }
+    // Cargar datos al inicio
+    LaunchedEffect(Unit) {
+        viewModel.getAllCategorias()
     }
 
     // Recargar datos después de eliminar
     LaunchedEffect(deleteState) {
         if (deleteState is Result.Success && (deleteState as Result.Success).data) {
-            if (municipalidadId > 0) {
-                viewModel.getEmprendedoresByMunicipalidad(municipalidadId)
-            } else {
-                viewModel.getAllEmprendedores()
-            }
+            viewModel.getAllCategorias()
         }
     }
 
     // Diálogo de confirmación para eliminar
-    if (showDeleteConfirmDialog.value && emprendedorToDelete.value != null) {
+    if (showDeleteConfirmDialog.value && categoriaToDelete.value != null) {
         AlertDialog(
             onDismissRequest = {
                 showDeleteConfirmDialog.value = false
-                emprendedorToDelete.value = null
+                categoriaToDelete.value = null
             },
             title = { Text("Confirmar eliminación") },
-            text = { Text("¿Está seguro que desea eliminar el emprendedor '${emprendedorToDelete.value?.nombreEmpresa}'? Esta acción no se puede deshacer.") },
+            text = { Text("¿Está seguro que desea eliminar la categoría '${categoriaToDelete.value?.nombre}'? Esta acción no eliminará los emprendedores asociados, pero quedarán sin categoría.") },
             confirmButton = {
                 Button(
                     onClick = {
                         scope.launch {
-                            emprendedorToDelete.value?.id?.let { viewModel.deleteEmprendedor(it) }
+                            categoriaToDelete.value?.id?.let { viewModel.deleteCategoria(it) }
                             showDeleteConfirmDialog.value = false
-                            emprendedorToDelete.value = null
+                            categoriaToDelete.value = null
                         }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
@@ -93,7 +84,7 @@ fun EmprendedoresScreen(
                 OutlinedButton(
                     onClick = {
                         showDeleteConfirmDialog.value = false
-                        emprendedorToDelete.value = null
+                        categoriaToDelete.value = null
                     }
                 ) {
                     Text("Cancelar")
@@ -102,22 +93,16 @@ fun EmprendedoresScreen(
         )
     }
 
-    val title = if (municipalidadId > 0) {
-        "Emprendedores de Municipalidad"
-    } else {
-        "Emprendedores"
-    }
-
     Scaffold(
         topBar = {
             TurismoAppBar(
-                title = title,
+                title = "Categorías",
                 onBackClick = onBack,
                 actions = {
                     IconButton(onClick = onNavigateToCreate) {
                         Icon(
                             imageVector = Icons.Default.Add,
-                            contentDescription = "Añadir emprendedor"
+                            contentDescription = "Añadir categoría"
                         )
                     }
                 }
@@ -127,28 +112,22 @@ fun EmprendedoresScreen(
             FloatingActionButton(onClick = onNavigateToCreate) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Crear emprendedor"
+                    contentDescription = "Crear categoría"
                 )
             }
         }
     ) { paddingValues ->
-        when (val state = emprendedoresState) {
+        when (val state = categoriasState) {
             is Result.Loading -> LoadingScreen()
             is Result.Error -> ErrorScreen(
                 message = state.message,
-                onRetry = {
-                    if (municipalidadId > 0) {
-                        viewModel.getEmprendedoresByMunicipalidad(municipalidadId)
-                    } else {
-                        viewModel.getAllEmprendedores()
-                    }
-                }
+                onRetry = { viewModel.getAllCategorias() }
             )
             is Result.Success -> {
                 if (state.data.isEmpty()) {
                     EmptyListPlaceholder(
-                        message = "No hay emprendedores registrados",
-                        buttonText = "Crear Emprendedor",
+                        message = "No hay categorías registradas",
+                        buttonText = "Crear Categoría",
                         onButtonClick = onNavigateToCreate
                     )
                 } else {
@@ -158,12 +137,13 @@ fun EmprendedoresScreen(
                             .padding(paddingValues)
                             .padding(horizontal = 16.dp)
                     ) {
-                        items(state.data) { emprendedor ->
-                            EmprendedorListItem(
-                                emprendedor = emprendedor,
-                                onClick = { onNavigateToDetail(emprendedor.id) },
+                        items(state.data) { categoria ->
+                            CategoriaListItem(
+                                categoria = categoria,
+                                onClick = { onNavigateToDetail(categoria.id) },
+                                onEmprendedoresClick = { onNavigateToEmprendedores(categoria.id) },
                                 onDelete = {
-                                    emprendedorToDelete.value = emprendedor
+                                    categoriaToDelete.value = categoria
                                     showDeleteConfirmDialog.value = true
                                 }
                             )
@@ -176,9 +156,10 @@ fun EmprendedoresScreen(
 }
 
 @Composable
-fun EmprendedorListItem(
-    emprendedor: Emprendedor,
+fun CategoriaListItem(
+    categoria: Categoria,
     onClick: () -> Unit,
+    onEmprendedoresClick: () -> Unit,
     onDelete: () -> Unit
 ) {
     Card(
@@ -187,54 +168,64 @@ fun EmprendedorListItem(
             .padding(vertical = 8.dp)
             .clickable(onClick = onClick)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(16.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.Business,
-                contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = emprendedor.nombreEmpresa,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                Icon(
+                    imageVector = Icons.Default.Category,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.primary
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.width(16.dp))
 
-                Text(
-                    text = "Rubro: ${emprendedor.rubro}",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                emprendedor.municipalidad?.let { municipalidad ->
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Municipalidad: ${municipalidad.nombre}",
+                        text = categoria.nombre,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = "Emprendedores: ${categoria.cantidadEmprendedores}",
                         style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
+                // Botón de eliminar
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Eliminar",
+                        tint = MaterialTheme.colorScheme.error
                     )
                 }
             }
 
-            // Botón de eliminar
-            IconButton(onClick = onDelete) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Eliminar",
-                    tint = MaterialTheme.colorScheme.error
+            if (categoria.descripcion != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = categoria.descripcion,
+                    style = MaterialTheme.typography.bodyMedium
                 )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Spacer(modifier = Modifier.weight(1f))
+                OutlinedButton(onClick = onEmprendedoresClick) {
+                    Text("Ver Emprendedores")
+                }
             }
         }
     }

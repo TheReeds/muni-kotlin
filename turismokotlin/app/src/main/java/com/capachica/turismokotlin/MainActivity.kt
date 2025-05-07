@@ -21,6 +21,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.capachica.turismokotlin.ui.screens.auth.LoginScreen
 import com.capachica.turismokotlin.ui.screens.auth.RegisterScreen
+import com.capachica.turismokotlin.ui.screens.categorias.CategoriaDetailScreen
+import com.capachica.turismokotlin.ui.screens.categorias.CategoriaFormScreen
+import com.capachica.turismokotlin.ui.screens.categorias.CategoriasScreen
 import com.capachica.turismokotlin.ui.screens.emprendedor.EmprendedorDetailScreen
 import com.capachica.turismokotlin.ui.screens.emprendedor.EmprendedorFormScreen
 import com.capachica.turismokotlin.ui.screens.emprendedor.EmprendedoresScreen
@@ -63,6 +66,10 @@ object Routes {
     const val EMPRENDEDORES_BY_MUNICIPALIDAD = "emprendedores_by_municipalidad/{municipalidadId}"
     const val EMPRENDEDOR_DETAIL = "emprendedor_detail/{id}"
     const val EMPRENDEDOR_FORM = "emprendedor_form/{id}"
+    const val CATEGORIAS = "categorias"
+    const val CATEGORIA_DETAIL = "categoria_detail/{id}"
+    const val CATEGORIA_FORM = "categoria_form/{id}"
+    const val EMPRENDEDORES_BY_CATEGORIA = "emprendedores_by_categoria/{categoriaId}"
 }
 
 @Composable
@@ -106,15 +113,15 @@ fun TurismoApp(factory: ViewModelFactory) {
         composable(Routes.HOME) {
             HomeScreen(
                 onNavigateToMunicipalidades = {
-                    Log.d(TAG, "Navegando a municipalidades")
                     navController.navigate(Routes.MUNICIPALIDADES)
                 },
                 onNavigateToEmprendedores = {
-                    Log.d(TAG, "Navegando a emprendedores")
                     navController.navigate(Routes.EMPRENDEDORES)
                 },
+                onNavigateToCategorias = {
+                    navController.navigate(Routes.CATEGORIAS)
+                },
                 onLogout = {
-                    Log.d(TAG, "Cerrando sesión, navegando a login")
                     navController.navigateToTop(Routes.LOGIN)
                 },
                 factory = factory
@@ -235,17 +242,18 @@ fun TurismoApp(factory: ViewModelFactory) {
             EmprendedorDetailScreen(
                 emprendedorId = id,
                 onNavigateToEdit = {
-                    Log.d(TAG, "Navegando al formulario de editar emprendedor: $id")
                     val route = Routes.EMPRENDEDOR_FORM.replace("{id}", id.toString())
                     navController.navigate(route)
                 },
                 onNavigateToMunicipalidad = { municipalidadId ->
-                    Log.d(TAG, "Navegando al detalle de municipalidad: $municipalidadId")
                     val route = Routes.MUNICIPALIDAD_DETAIL.replace("{id}", municipalidadId.toString())
                     navController.navigate(route)
                 },
+                onNavigateToCategoria = { categoriaId ->
+                    val route = Routes.CATEGORIA_DETAIL.replace("{id}", categoriaId.toString())
+                    navController.navigate(route)
+                },
                 onBack = {
-                    Log.d(TAG, "Volviendo desde detalle de emprendedor")
                     navController.popBackStack()
                 },
                 factory = factory
@@ -262,6 +270,93 @@ fun TurismoApp(factory: ViewModelFactory) {
                 emprendedorId = id,
                 onSuccess = { navController.popBackStack() },
                 onBack = { navController.popBackStack() },
+                factory = factory
+            )
+        }
+        // Categorías
+        composable(Routes.CATEGORIAS) {
+            CategoriasScreen(
+                onNavigateToDetail = { id ->
+                    Log.d(TAG, "Navegando al detalle de categoría: $id")
+                    navController.navigate(Routes.CATEGORIA_DETAIL.replace("{id}", id.toString()))
+                },
+                onNavigateToCreate = {
+                    Log.d(TAG, "Navegando al formulario de crear categoría")
+                    val route = Routes.CATEGORIA_FORM.replace("{id}", "0")
+                    navController.navigate(route)
+                },
+                onNavigateToEmprendedores = { categoriaId ->
+                    Log.d(TAG, "Navegando a emprendedores de categoría: $categoriaId")
+                    val route = Routes.EMPRENDEDORES_BY_CATEGORIA.replace("{categoriaId}", categoriaId.toString())
+                    navController.navigate(route)
+                },
+                onBack = {
+                    Log.d(TAG, "Volviendo desde categorías")
+                    navController.popBackStack()
+                },
+                factory = factory
+            )
+        }
+
+        composable(
+            route = Routes.CATEGORIA_DETAIL,
+            arguments = listOf(navArgument("id") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getLong("id") ?: 0L
+            CategoriaDetailScreen(
+                categoriaId = id,
+                onNavigateToEdit = {
+                    Log.d(TAG, "Navegando al formulario de editar categoría: $id")
+                    val route = Routes.CATEGORIA_FORM.replace("{id}", id.toString())
+                    navController.navigate(route)
+                },
+                onNavigateToEmprendedores = {
+                    Log.d(TAG, "Navegando a emprendedores de categoría: $id")
+                    val route = Routes.EMPRENDEDORES_BY_CATEGORIA.replace("{categoriaId}", id.toString())
+                    navController.navigate(route)
+                },
+                onBack = {
+                    Log.d(TAG, "Volviendo desde detalle de categoría")
+                    navController.popBackStack()
+                },
+                factory = factory
+            )
+        }
+
+        composable(
+            route = Routes.CATEGORIA_FORM,
+            arguments = listOf(navArgument("id") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getLong("id") ?: 0L
+            CategoriaFormScreen(
+                categoriaId = id,
+                onSuccess = { navController.popBackStack() },
+                onBack = { navController.popBackStack() },
+                factory = factory
+            )
+        }
+
+        composable(
+            route = Routes.EMPRENDEDORES_BY_CATEGORIA,
+            arguments = listOf(navArgument("categoriaId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val categoriaId = backStackEntry.arguments?.getLong("categoriaId") ?: 0L
+            EmprendedoresScreen(
+                categoriaId = categoriaId,
+                onNavigateToDetail = { id ->
+                    Log.d(TAG, "Navegando al detalle de emprendedor: $id")
+                    val route = Routes.EMPRENDEDOR_DETAIL.replace("{id}", id.toString())
+                    navController.navigate(route)
+                },
+                onNavigateToCreate = {
+                    Log.d(TAG, "Navegando al formulario de crear emprendedor para categoría: $categoriaId")
+                    val route = Routes.EMPRENDEDOR_FORM.replace("{id}", "0")
+                    navController.navigate(route)
+                },
+                onBack = {
+                    Log.d(TAG, "Volviendo desde emprendedores de categoría")
+                    navController.popBackStack()
+                },
                 factory = factory
             )
         }

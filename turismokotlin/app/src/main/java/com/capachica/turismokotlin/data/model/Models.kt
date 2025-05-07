@@ -91,7 +91,8 @@ data class Emprendedor(
     val productos: String?,
     val servicios: String?,
     val usuarioId: Long,
-    val municipalidad: MunicipalidadBasic? = null
+    val municipalidad: MunicipalidadBasic? = null,
+    val categoria: CategoriaBasic? = null
 ) : Parcelable
 
 @Parcelize
@@ -105,5 +106,25 @@ data class EmprendedorRequest(
     val descripcion: String? = null,
     val productos: String? = null,
     val servicios: String? = null,
-    val municipalidadId: Long
+    val municipalidadId: Long,
+    val categoriaId: Long? = null
+) : Parcelable
+@Parcelize
+data class Categoria(
+    val id: Long,
+    val nombre: String,
+    val descripcion: String?,
+    val cantidadEmprendedores: Int
+) : Parcelable
+
+@Parcelize
+data class CategoriaBasic(
+    val id: Long,
+    val nombre: String
+) : Parcelable
+
+@Parcelize
+data class CategoriaRequest(
+    val nombre: String,
+    val descripcion: String? = null
 ) : Parcelable

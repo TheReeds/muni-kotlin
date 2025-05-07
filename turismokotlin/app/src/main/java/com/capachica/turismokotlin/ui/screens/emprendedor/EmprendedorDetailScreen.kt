@@ -25,6 +25,7 @@ fun EmprendedorDetailScreen(
     emprendedorId: Long,
     onNavigateToEdit: () -> Unit,
     onNavigateToMunicipalidad: (Long) -> Unit,
+    onNavigateToCategoria: (Long) -> Unit,
     onBack: () -> Unit,
     factory: ViewModelFactory
 ) {

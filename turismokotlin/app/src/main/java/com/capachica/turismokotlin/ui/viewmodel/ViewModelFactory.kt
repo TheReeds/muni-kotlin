@@ -7,6 +7,7 @@ import com.capachica.turismokotlin.data.api.ApiClient
 import com.capachica.turismokotlin.data.local.AppDatabase
 import com.capachica.turismokotlin.data.local.SessionManager
 import com.capachica.turismokotlin.data.repository.AuthRepository
+import com.capachica.turismokotlin.data.repository.CategoriaRepository
 import com.capachica.turismokotlin.data.repository.EmprendedorRepository
 import com.capachica.turismokotlin.data.repository.MunicipalidadRepository
 
@@ -44,6 +45,10 @@ class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory
                     emprendedorMunicipalidadDao
                 )
                 EmprendedorViewModel(repository) as T
+            }
+            modelClass.isAssignableFrom(CategoriaViewModel::class.java) -> {
+                val repository = CategoriaRepository(apiService)
+                CategoriaViewModel(repository) as T
             }
             else -> throw IllegalArgumentException("ViewModel no encontrado")
         }

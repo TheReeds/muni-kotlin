@@ -67,4 +67,23 @@ interface ApiService {
 
     @DELETE("emprendedores/{id}")
     suspend fun deleteEmprendedor(@Path("id") id: Long): Response<Void>
+    // Categorías
+    @GET("categorias")
+    suspend fun getAllCategorias(): Response<List<Categoria>>
+
+    @GET("categorias/{id}")
+    suspend fun getCategoriaById(@Path("id") id: Long): Response<Categoria>
+
+    @POST("categorias")
+    suspend fun createCategoria(@Body request: CategoriaRequest): Response<Categoria>
+
+    @PUT("categorias/{id}")
+    suspend fun updateCategoria(@Path("id") id: Long, @Body request: CategoriaRequest): Response<Categoria>
+
+    @DELETE("categorias/{id}")
+    suspend fun deleteCategoria(@Path("id") id: Long): Response<Void>
+
+    // Update emprendedor endpoints to get by category
+    @GET("emprendedores/categoria/{categoriaId}")
+    suspend fun getEmprendedoresByCategoria(@Path("categoriaId") categoriaId: Long): Response<List<Emprendedor>>
 }

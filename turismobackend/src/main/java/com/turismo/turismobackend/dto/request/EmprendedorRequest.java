@@ -39,4 +39,6 @@ public class EmprendedorRequest {
     
     @NotNull(message = "El ID de la municipalidad es obligatorio")
     private Long municipalidadId;
+    
+    private Long categoriaId; // Opcional, puede ser null
 }

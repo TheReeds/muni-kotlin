@@ -619,4 +619,26 @@ class EmprendedorRepository(
             emit(Result.Error(e.message ?: "Error desconocido"))
         }
     }.flowOn(Dispatchers.IO)
+    fun getEmprendedoresByCategoria(categoriaId: Long): Flow<Result<List<Emprendedor>>> = flow {
+        emit(Result.Loading)
+
+        try {
+            val response = apiService.getEmprendedoresByCategoria(categoriaId)
+            if (response.isSuccessful) {
+                response.body()?.let { emprendedores ->
+                    Log.d(TAG, "Obtenidos ${emprendedores.size} emprendedores para categoría $categoriaId del servidor")
+                    emit(Result.Success(emprendedores))
+                } ?: emit(Result.Error("Respuesta vacía del servidor"))
+            } else {
+                emit(Result.Error("Error: ${response.code()}"))
+                Log.e(TAG, "Error al obtener datos del servidor: ${response.code()}")
+            }
+        } catch (e: IOException) {
+            emit(Result.Error("Error de conexión: ${e.message}"))
+            Log.e(TAG, "Error de conexión", e)
+        } catch (e: Exception) {
+            emit(Result.Error("Error en la solicitud: ${e.message}"))
+            Log.e(TAG, "Error inesperado", e)
+        }
+    }.flowOn(Dispatchers.IO)
 }

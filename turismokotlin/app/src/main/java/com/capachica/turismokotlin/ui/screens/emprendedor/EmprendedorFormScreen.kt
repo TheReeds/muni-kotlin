@@ -18,6 +18,7 @@ import com.capachica.turismokotlin.data.repository.Result
 import com.capachica.turismokotlin.ui.components.LoadingScreen
 import com.capachica.turismokotlin.ui.components.TurismoAppBar
 import com.capachica.turismokotlin.ui.components.TurismoTextField
+import com.capachica.turismokotlin.ui.viewmodel.CategoriaViewModel
 import com.capachica.turismokotlin.ui.viewmodel.EmprendedorViewModel
 import com.capachica.turismokotlin.ui.viewmodel.MunicipalidadViewModel
 import com.capachica.turismokotlin.ui.viewmodel.ViewModelFactory
@@ -67,10 +68,20 @@ fun EmprendedorFormScreen(
     var municipalidades by remember { mutableStateOf<List<Municipalidad>>(emptyList()) }
     var expandedMunicipalidad by remember { mutableStateOf(false) }
 
+    // Add category viewModel
+    val categoriaViewModel: CategoriaViewModel = viewModel(factory = factory)
+    val categoriasState by categoriaViewModel.categoriasState.collectAsState()
+
+    // Add state for selected category
+    var selectedCategoriaId by remember { mutableStateOf<Long?>(null) }
+    var showCategoriasDropdown by remember { mutableStateOf(false) }
+
+
     // Inicialización para limpiar estados
     LaunchedEffect(Unit) {
         emprendedorViewModel.resetStates()
         municipalidadViewModel.getAllMunicipalidades()
+        categoriaViewModel.getAllCategorias()
 
         // Solo cargamos datos del emprendedor si estamos editando
         if (isEditing) {
@@ -105,6 +116,7 @@ fun EmprendedorFormScreen(
             descripcion = emprendedor.descripcion ?: ""
             productos = emprendedor.productos ?: ""
             servicios = emprendedor.servicios ?: ""
+            selectedCategoriaId = emprendedor.categoria?.id
 
             // Asignar la municipalidad
             emprendedor.municipalidad?.let {

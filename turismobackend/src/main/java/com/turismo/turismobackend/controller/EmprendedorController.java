@@ -38,6 +38,11 @@ public class EmprendedorController {
         return ResponseEntity.ok(emprendedorService.getEmprendedoresByRubro(rubro));
     }
     
+    @GetMapping("/categoria/{categoriaId}")
+    public ResponseEntity<List<EmprendedorResponse>> getEmprendedoresByCategoria(@PathVariable Long categoriaId) {
+        return ResponseEntity.ok(emprendedorService.getEmprendedoresByCategoria(categoriaId));
+    }
+    
     @GetMapping("/mi-emprendedor")
     @PreAuthorize("hasAnyRole('ROLE_EMPRENDEDOR', 'ROLE_ADMIN')")
     public ResponseEntity<EmprendedorResponse> getMiEmprendedor() {

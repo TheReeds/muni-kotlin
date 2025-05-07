@@ -22,6 +22,7 @@ public class EmprendedorResponse {
     private String servicios;
     private Long usuarioId;
     private MunicipalidadResumen municipalidad;
+    private CategoriaResumen categoria;
     
     @Data
     @Builder
@@ -31,5 +32,14 @@ public class EmprendedorResponse {
         private Long id;
         private String nombre;
         private String distrito;
+    }
+    
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CategoriaResumen {
+        private Long id;
+        private String nombre;
     }
 }
