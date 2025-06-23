@@ -10,6 +10,10 @@ import com.capachica.turismokotlin.data.repository.AuthRepository
 import com.capachica.turismokotlin.data.repository.CategoriaRepository
 import com.capachica.turismokotlin.data.repository.EmprendedorRepository
 import com.capachica.turismokotlin.data.repository.MunicipalidadRepository
+import com.capachica.turismokotlin.data.repository.ServicioTuristicoRepository
+import com.capachica.turismokotlin.data.repository.PlanTuristicoRepository
+import com.capachica.turismokotlin.data.repository.ReservaRepository
+import com.capachica.turismokotlin.data.repository.PagoRepository
 
 class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
 
@@ -49,6 +53,22 @@ class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory
             modelClass.isAssignableFrom(CategoriaViewModel::class.java) -> {
                 val repository = CategoriaRepository(apiService)
                 CategoriaViewModel(repository) as T
+            }
+            modelClass.isAssignableFrom(ServicioTuristicoViewModel::class.java) -> {
+                val repository = ServicioTuristicoRepository(apiService)
+                ServicioTuristicoViewModel(repository) as T
+            }
+            modelClass.isAssignableFrom(PlanTuristicoViewModel::class.java) -> {
+                val repository = PlanTuristicoRepository(apiService)
+                PlanTuristicoViewModel(repository) as T
+            }
+            modelClass.isAssignableFrom(ReservaViewModel::class.java) -> {
+                val repository = ReservaRepository(apiService)
+                ReservaViewModel(repository) as T
+            }
+            modelClass.isAssignableFrom(PagoViewModel::class.java) -> {
+                val repository = PagoRepository(apiService)
+                PagoViewModel(repository) as T
             }
             else -> throw IllegalArgumentException("ViewModel no encontrado")
         }

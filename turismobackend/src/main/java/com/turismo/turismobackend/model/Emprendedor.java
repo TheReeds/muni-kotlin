@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -52,4 +55,8 @@ public class Emprendedor {
     @OneToOne
     @JoinColumn(name = "usuario_id", unique = true)
     private Usuario usuario;
+    
+    @Builder.Default
+    @OneToMany(mappedBy = "emprendedor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ServicioTuristico> serviciosTuristicos = new ArrayList<>();
 }

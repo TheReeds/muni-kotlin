@@ -11,6 +11,7 @@ import java.util.Optional;
 @Repository
 public interface MunicipalidadRepository extends JpaRepository<Municipalidad, Long> {
     Optional<Municipalidad> findByUsuario(Usuario usuario);
+    Optional<Municipalidad> findByUsuarioId(Long usuarioId);
     List<Municipalidad> findByDepartamento(String departamento);
     List<Municipalidad> findByProvincia(String provincia);
     List<Municipalidad> findByDistrito(String distrito);

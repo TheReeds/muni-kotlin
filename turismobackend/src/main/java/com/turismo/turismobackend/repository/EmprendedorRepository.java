@@ -13,6 +13,7 @@ import java.util.Optional;
 @Repository
 public interface EmprendedorRepository extends JpaRepository<Emprendedor, Long> {
     Optional<Emprendedor> findByUsuario(Usuario usuario);
+    Optional<Emprendedor> findByUsuarioId(Long usuarioId);
     List<Emprendedor> findByMunicipalidad(Municipalidad municipalidad);
     List<Emprendedor> findByRubro(String rubro);
     List<Emprendedor> findByCategoria(Categoria categoria);

@@ -31,6 +31,20 @@ import com.capachica.turismokotlin.ui.screens.home.HomeScreen
 import com.capachica.turismokotlin.ui.screens.municipalidad.MunicipalidadDetailScreen
 import com.capachica.turismokotlin.ui.screens.municipalidad.MunicipalidadFormScreen
 import com.capachica.turismokotlin.ui.screens.municipalidad.MunicipalidadesScreen
+import com.capachica.turismokotlin.ui.screens.planes.PlanesUsuarioScreen
+import com.capachica.turismokotlin.ui.screens.planes.PlanDetailScreen
+import com.capachica.turismokotlin.ui.screens.reservas.ReservaFormScreen
+import com.capachica.turismokotlin.ui.screens.reservas.MisReservasScreen
+import com.capachica.turismokotlin.ui.screens.reservas.ReservaDetailScreen
+import com.capachica.turismokotlin.ui.screens.admin.AdminDashboardScreen
+import com.capachica.turismokotlin.ui.screens.admin.AdminReservasScreen
+import com.capachica.turismokotlin.ui.screens.admin.AdminPlanesScreen
+import com.capachica.turismokotlin.ui.screens.admin.AdminServiciosScreen
+import com.capachica.turismokotlin.ui.screens.servicios.ServicioStoreScreen
+import com.capachica.turismokotlin.ui.screens.servicios.ServicioDetailScreen
+import com.capachica.turismokotlin.ui.screens.servicios.ServicioFormScreen
+import com.capachica.turismokotlin.ui.screens.servicios.MisServiciosScreen
+import com.capachica.turismokotlin.ui.screens.pagos.PagosScreen
 import com.capachica.turismokotlin.ui.theme.TurismoKotlinTheme
 import com.capachica.turismokotlin.ui.viewmodel.ViewModelFactory
 
@@ -70,6 +84,26 @@ object Routes {
     const val CATEGORIA_DETAIL = "categoria_detail/{id}"
     const val CATEGORIA_FORM = "categoria_form/{id}"
     const val EMPRENDEDORES_BY_CATEGORIA = "emprendedores_by_categoria/{categoriaId}"
+    
+    // Nuevas rutas para el módulo de turismo
+    const val PLANES_USUARIO = "planes_usuario"
+    const val PLAN_DETAIL = "plan_detail/{id}"
+    const val RESERVA_FORM = "reserva_form/{planId}"
+    const val MIS_RESERVAS = "mis_reservas"
+    const val RESERVA_DETAIL = "reserva_detail/{id}"
+    
+    // Rutas administrativas
+    const val ADMIN_DASHBOARD = "admin_dashboard"
+    const val ADMIN_RESERVAS = "admin_reservas"
+    const val ADMIN_PLANES = "admin_planes"
+    const val ADMIN_SERVICIOS = "admin_servicios"
+    
+    // Rutas adicionales
+    const val SERVICIOS_STORE = "servicios_store"
+    const val SERVICIO_DETAIL = "servicio_detail/{id}"
+    const val SERVICIO_FORM = "servicio_form/{id}"
+    const val MIS_SERVICIOS = "mis_servicios"
+    const val PAGOS = "pagos"
 }
 
 @Composable
@@ -120,6 +154,18 @@ fun TurismoApp(factory: ViewModelFactory) {
                 },
                 onNavigateToCategorias = {
                     navController.navigate(Routes.CATEGORIAS)
+                },
+                onNavigateToPlanes = {
+                    navController.navigate(Routes.PLANES_USUARIO)
+                },
+                onNavigateToMisReservas = {
+                    navController.navigate(Routes.MIS_RESERVAS)
+                },
+                onNavigateToServicios = {
+                    navController.navigate(Routes.SERVICIOS_STORE)
+                },
+                onNavigateToAdmin = {
+                    navController.navigate(Routes.ADMIN_DASHBOARD)
                 },
                 onLogout = {
                     navController.navigateToTop(Routes.LOGIN)
@@ -355,6 +401,257 @@ fun TurismoApp(factory: ViewModelFactory) {
                 },
                 onBack = {
                     Log.d(TAG, "Volviendo desde emprendedores de categoría")
+                    navController.popBackStack()
+                },
+                factory = factory
+            )
+        }
+
+        // Nuevas rutas del módulo de turismo
+        
+        // Planes turísticos para usuarios
+        composable(Routes.PLANES_USUARIO) {
+            PlanesUsuarioScreen(
+                onNavigateToDetail = { id ->
+                    val route = Routes.PLAN_DETAIL.replace("{id}", id.toString())
+                    navController.navigate(route)
+                },
+                onNavigateToReserva = { planId ->
+                    val route = Routes.RESERVA_FORM.replace("{planId}", planId.toString())
+                    navController.navigate(route)
+                },
+                onBack = {
+                    navController.popBackStack()
+                },
+                factory = factory
+            )
+        }
+        
+        // Detalle de plan turístico
+        composable(
+            route = Routes.PLAN_DETAIL,
+            arguments = listOf(navArgument("id") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getLong("id") ?: 0L
+            PlanDetailScreen(
+                planId = id,
+                onNavigateToReserva = { planId ->
+                    val route = Routes.RESERVA_FORM.replace("{planId}", planId.toString())
+                    navController.navigate(route)
+                },
+                onBack = {
+                    navController.popBackStack()
+                },
+                factory = factory
+            )
+        }
+        
+        // Formulario de reserva
+        composable(
+            route = Routes.RESERVA_FORM,
+            arguments = listOf(navArgument("planId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val planId = backStackEntry.arguments?.getLong("planId") ?: 0L
+            ReservaFormScreen(
+                planId = planId,
+                onSuccess = {
+                    navController.navigate(Routes.MIS_RESERVAS) {
+                        popUpTo(Routes.PLANES_USUARIO) { inclusive = false }
+                    }
+                },
+                onBack = {
+                    navController.popBackStack()
+                },
+                factory = factory
+            )
+        }
+        
+        // Mis reservas
+        composable(Routes.MIS_RESERVAS) {
+            MisReservasScreen(
+                onNavigateToDetail = { id ->
+                    val route = Routes.RESERVA_DETAIL.replace("{id}", id.toString())
+                    navController.navigate(route)
+                },
+                onBack = {
+                    navController.popBackStack()
+                },
+                factory = factory
+            )
+        }
+        
+        // Detalle de reserva
+        composable(
+            route = Routes.RESERVA_DETAIL,
+            arguments = listOf(navArgument("id") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getLong("id") ?: 0L
+            ReservaDetailScreen(
+                reservaId = id,
+                onBack = {
+                    navController.popBackStack()
+                },
+                factory = factory
+            )
+        }
+        
+        // Tienda de servicios
+        composable(Routes.SERVICIOS_STORE) {
+            ServicioStoreScreen(
+                onNavigateToDetail = { id ->
+                    Log.d(TAG, "Navegando al detalle del servicio: $id")
+                    val route = Routes.SERVICIO_DETAIL.replace("{id}", id.toString())
+                    navController.navigate(route)
+                },
+                onBack = {
+                    navController.popBackStack()
+                },
+                factory = factory
+            )
+        }
+        
+        // Detalle de servicio
+        composable(
+            route = Routes.SERVICIO_DETAIL,
+            arguments = listOf(navArgument("id") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getLong("id") ?: 0L
+            ServicioDetailScreen(
+                servicioId = id,
+                onNavigateToEdit = {
+                    val route = Routes.SERVICIO_FORM.replace("{id}", id.toString())
+                    navController.navigate(route)
+                },
+                onNavigateToEmprendedor = { emprendedorId ->
+                    val route = Routes.EMPRENDEDOR_DETAIL.replace("{id}", emprendedorId.toString())
+                    navController.navigate(route)
+                },
+                onBack = {
+                    navController.popBackStack()
+                },
+                // TODO: Implementar lógica para determinar si puede editar según el rol del usuario
+                canEdit = true,
+                factory = factory
+            )
+        }
+        
+        // Formulario de servicio
+        composable(
+            route = Routes.SERVICIO_FORM,
+            arguments = listOf(navArgument("id") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getLong("id") ?: 0L
+            ServicioFormScreen(
+                servicioId = id,
+                onSuccess = {
+                    navController.popBackStack()
+                },
+                onBack = {
+                    navController.popBackStack()
+                },
+                factory = factory
+            )
+        }
+        
+        // Mis servicios (para emprendedores)
+        composable(Routes.MIS_SERVICIOS) {
+            MisServiciosScreen(
+                onNavigateToDetail = { id ->
+                    val route = Routes.SERVICIO_DETAIL.replace("{id}", id.toString())
+                    navController.navigate(route)
+                },
+                onNavigateToCreate = {
+                    val route = Routes.SERVICIO_FORM.replace("{id}", "0")
+                    navController.navigate(route)
+                },
+                onBack = {
+                    navController.popBackStack()
+                },
+                factory = factory
+            )
+        }
+        
+        // Panel administrativo
+        composable(Routes.ADMIN_DASHBOARD) {
+            AdminDashboardScreen(
+                onNavigateToReservas = {
+                    navController.navigate(Routes.ADMIN_RESERVAS)
+                },
+                onNavigateToPlanes = {
+                    navController.navigate(Routes.ADMIN_PLANES)
+                },
+                onNavigateToServicios = {
+                    navController.navigate(Routes.ADMIN_SERVICIOS)
+                },
+                onNavigateToPagos = {
+                    navController.navigate(Routes.PAGOS)
+                },
+                onBack = {
+                    navController.popBackStack()
+                },
+                factory = factory
+            )
+        }
+        
+        // Administración de reservas
+        composable(Routes.ADMIN_RESERVAS) {
+            AdminReservasScreen(
+                onNavigateToDetail = { id ->
+                    val route = Routes.RESERVA_DETAIL.replace("{id}", id.toString())
+                    navController.navigate(route)
+                },
+                onBack = {
+                    navController.popBackStack()
+                },
+                factory = factory
+            )
+        }
+        
+        // Administración de planes
+        composable(Routes.ADMIN_PLANES) {
+            AdminPlanesScreen(
+                onNavigateToDetail = { id ->
+                    val route = Routes.PLAN_DETAIL.replace("{id}", id.toString())
+                    navController.navigate(route)
+                },
+                onNavigateToCreate = {
+                    Log.d(TAG, "Navegando al formulario de crear plan")
+                    // TODO: Implementar ruta para crear plan
+                },
+                onBack = {
+                    navController.popBackStack()
+                },
+                factory = factory
+            )
+        }
+        
+        // Administración de servicios
+        composable(Routes.ADMIN_SERVICIOS) {
+            AdminServiciosScreen(
+                onNavigateToDetail = { id ->
+                    Log.d(TAG, "Navegando al detalle del servicio: $id")
+                    val route = Routes.SERVICIO_DETAIL.replace("{id}", id.toString())
+                    navController.navigate(route)
+                },
+                onNavigateToCreate = {
+                    Log.d(TAG, "Navegando al formulario de crear servicio")
+                    val route = Routes.SERVICIO_FORM.replace("{id}", "0")
+                    navController.navigate(route)
+                },
+                onBack = {
+                    navController.popBackStack()
+                },
+                factory = factory
+            )
+        }
+        
+        // Gestión de pagos
+        composable(Routes.PAGOS) {
+            PagosScreen(
+                onNavigateToPagoDetail = { id ->
+                    Log.d(TAG, "Navegando al detalle del pago: $id")
+                },
+                onBack = {
                     navController.popBackStack()
                 },
                 factory = factory
