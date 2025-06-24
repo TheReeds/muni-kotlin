@@ -20,14 +20,14 @@ class ServicioTuristicoViewModel(
     private val _servicioState = MutableStateFlow<Result<ServicioTuristico>>(Result.Loading)
     val servicioState: StateFlow<Result<ServicioTuristico>> = _servicioState
     
-    private val _createUpdateState = MutableStateFlow<Result<ServicioTuristico>>(Result.Loading)
-    val createUpdateState: StateFlow<Result<ServicioTuristico>> = _createUpdateState
+    private val _createUpdateState = MutableStateFlow<Result<ServicioTuristico>?>(null)
+    val createUpdateState: StateFlow<Result<ServicioTuristico>?> = _createUpdateState
     
-    private val _deleteState = MutableStateFlow<Result<Boolean>>(Result.Loading)
-    val deleteState: StateFlow<Result<Boolean>> = _deleteState
+    private val _deleteState = MutableStateFlow<Result<Boolean>?>(null)
+    val deleteState: StateFlow<Result<Boolean>?> = _deleteState
     
-    private val _cambiarEstadoState = MutableStateFlow<Result<ServicioTuristico>>(Result.Loading)
-    val cambiarEstadoState: StateFlow<Result<ServicioTuristico>> = _cambiarEstadoState
+    private val _cambiarEstadoState = MutableStateFlow<Result<ServicioTuristico>?>(null)
+    val cambiarEstadoState: StateFlow<Result<ServicioTuristico>?> = _cambiarEstadoState
     
     fun getAllServicios() {
         viewModelScope.launch {
@@ -126,6 +126,7 @@ class ServicioTuristicoViewModel(
     }
     
     fun createServicio(request: ServicioTuristicoRequest) {
+        _createUpdateState.value = Result.Loading
         viewModelScope.launch {
             repository.createServicio(request)
                 .catch { e ->
@@ -138,6 +139,7 @@ class ServicioTuristicoViewModel(
     }
     
     fun updateServicio(id: Long, request: ServicioTuristicoRequest) {
+        _createUpdateState.value = Result.Loading
         viewModelScope.launch {
             repository.updateServicio(id, request)
                 .catch { e ->
@@ -150,6 +152,7 @@ class ServicioTuristicoViewModel(
     }
     
     fun deleteServicio(id: Long) {
+        _deleteState.value = Result.Loading
         viewModelScope.launch {
             repository.deleteServicio(id)
                 .catch { e ->
@@ -162,6 +165,7 @@ class ServicioTuristicoViewModel(
     }
     
     fun cambiarEstadoServicio(id: Long, estado: EstadoServicio) {
+        _cambiarEstadoState.value = Result.Loading
         viewModelScope.launch {
             repository.cambiarEstadoServicio(id, estado)
                 .catch { e ->
@@ -174,8 +178,8 @@ class ServicioTuristicoViewModel(
     }
     
     fun clearStates() {
-        _createUpdateState.value = Result.Loading
-        _deleteState.value = Result.Loading
-        _cambiarEstadoState.value = Result.Loading
+        _createUpdateState.value = null
+        _deleteState.value = null
+        _cambiarEstadoState.value = null
     }
 }
