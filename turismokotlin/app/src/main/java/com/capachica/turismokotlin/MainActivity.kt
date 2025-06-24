@@ -40,6 +40,8 @@ import com.capachica.turismokotlin.ui.screens.admin.AdminDashboardScreen
 import com.capachica.turismokotlin.ui.screens.admin.AdminReservasScreen
 import com.capachica.turismokotlin.ui.screens.admin.AdminPlanesScreen
 import com.capachica.turismokotlin.ui.screens.admin.AdminServiciosScreen
+import com.capachica.turismokotlin.ui.screens.admin.UserManagementScreen
+import com.capachica.turismokotlin.ui.screens.admin.UserDetailScreen
 import com.capachica.turismokotlin.ui.screens.servicios.ServicioStoreScreen
 import com.capachica.turismokotlin.ui.screens.servicios.ServicioDetailScreen
 import com.capachica.turismokotlin.ui.screens.servicios.ServicioFormScreen
@@ -97,6 +99,8 @@ object Routes {
     const val ADMIN_RESERVAS = "admin_reservas"
     const val ADMIN_PLANES = "admin_planes"
     const val ADMIN_SERVICIOS = "admin_servicios"
+    const val USER_MANAGEMENT = "user_management"
+    const val USER_DETAIL = "user_detail/{userId}"
     
     // Rutas adicionales
     const val SERVICIOS_STORE = "servicios_store"
@@ -586,6 +590,9 @@ fun TurismoApp(factory: ViewModelFactory) {
                 onNavigateToPagos = {
                     navController.navigate(Routes.PAGOS)
                 },
+                onNavigateToUsers = {
+                    navController.navigate(Routes.USER_MANAGEMENT)
+                },
                 onBack = {
                     navController.popBackStack()
                 },
@@ -638,6 +645,34 @@ fun TurismoApp(factory: ViewModelFactory) {
                     val route = Routes.SERVICIO_FORM.replace("{id}", "0")
                     navController.navigate(route)
                 },
+                onBack = {
+                    navController.popBackStack()
+                },
+                factory = factory
+            )
+        }
+        
+        // Gestión de usuarios
+        composable(Routes.USER_MANAGEMENT) {
+            UserManagementScreen(
+                onNavigateToUserDetail = { userId ->
+                    val route = Routes.USER_DETAIL.replace("{userId}", userId.toString())
+                    navController.navigate(route)
+                },
+                onBack = {
+                    navController.popBackStack()
+                },
+                factory = factory
+            )
+        }
+        
+        composable(
+            route = Routes.USER_DETAIL,
+            arguments = listOf(navArgument("userId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getLong("userId") ?: 0L
+            UserDetailScreen(
+                userId = userId,
                 onBack = {
                     navController.popBackStack()
                 },

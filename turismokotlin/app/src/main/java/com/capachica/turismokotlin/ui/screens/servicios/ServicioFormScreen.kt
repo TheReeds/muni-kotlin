@@ -69,7 +69,7 @@ fun ServicioFormScreen(
     // Poblar formulario con datos existentes
     LaunchedEffect(servicioState) {
         if (isEditing && servicioState is Result.Success) {
-            val servicio = servicioState.data
+            val servicio = (servicioState as Result.Success<ServicioTuristico>).data
             nombre = servicio.nombre
             descripcion = servicio.descripcion ?: ""
             precio = servicio.precio.toString()
@@ -165,7 +165,7 @@ fun ServicioFormScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = createUpdateState.message,
+                            text = (createUpdateState as Result.Error).message,
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
                     }

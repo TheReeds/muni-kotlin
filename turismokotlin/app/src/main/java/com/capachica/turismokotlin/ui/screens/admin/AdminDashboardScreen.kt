@@ -27,6 +27,7 @@ fun AdminDashboardScreen(
     onNavigateToPlanes: () -> Unit,
     onNavigateToServicios: () -> Unit,
     onNavigateToPagos: () -> Unit,
+    onNavigateToUsers: () -> Unit,
     onBack: () -> Unit,
     factory: ViewModelFactory
 ) {
@@ -75,7 +76,8 @@ fun AdminDashboardScreen(
                     onNavigateToReservas = onNavigateToReservas,
                     onNavigateToPlanes = onNavigateToPlanes,
                     onNavigateToServicios = onNavigateToServicios,
-                    onNavigateToPagos = onNavigateToPagos
+                    onNavigateToPagos = onNavigateToPagos,
+                    onNavigateToUsers = onNavigateToUsers
                 )
             }
             
@@ -203,7 +205,8 @@ fun QuickAccessSection(
     onNavigateToReservas: () -> Unit,
     onNavigateToPlanes: () -> Unit,
     onNavigateToServicios: () -> Unit,
-    onNavigateToPagos: () -> Unit
+    onNavigateToPagos: () -> Unit,
+    onNavigateToUsers: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -259,6 +262,23 @@ fun QuickAccessSection(
                     onClick = onNavigateToPagos,
                     modifier = Modifier.weight(1f)
                 )
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                QuickAccessButton(
+                    icon = Icons.Default.People,
+                    text = "Usuarios",
+                    onClick = onNavigateToUsers,
+                    modifier = Modifier.weight(1f)
+                )
+                
+                // Placeholder para mantener la alineación
+                Spacer(modifier = Modifier.weight(1f))
             }
         }
     }

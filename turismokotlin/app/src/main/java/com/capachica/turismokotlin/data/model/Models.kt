@@ -427,6 +427,17 @@ data class UsuarioBasic(
 ) : Parcelable
 
 @Parcelize
+data class UsuarioResponse(
+    val id: Long,
+    val nombre: String,
+    val apellido: String,
+    val username: String,
+    val email: String,
+    val roles: List<String>,
+    val emprendedor: EmprendedorBasic? = null
+) : Parcelable
+
+@Parcelize
 data class ReservaBasic(
     val id: Long,
     val codigoReserva: String,

@@ -228,4 +228,35 @@ interface ApiService {
 
     @PATCH("pagos/{id}/rechazar")
     suspend fun rechazarPago(@Path("id") id: Long, @Query("motivo") motivo: String): Response<Pago>
+
+    // ========== USUARIOS ==========
+    @GET("usuarios")
+    suspend fun getAllUsuarios(): Response<List<UsuarioResponse>>
+
+    @GET("usuarios/{id}")
+    suspend fun getUsuarioById(@Path("id") id: Long): Response<UsuarioResponse>
+
+    @GET("usuarios/sin-emprendedor")
+    suspend fun getUsuariosSinEmprendedor(): Response<List<UsuarioResponse>>
+
+    @GET("usuarios/con-rol/{rol}")
+    suspend fun getUsuariosPorRol(@Path("rol") rol: String): Response<List<UsuarioResponse>>
+
+    @PUT("usuarios/{usuarioId}/asignar-rol/{rol}")
+    suspend fun asignarRolAUsuario(@Path("usuarioId") usuarioId: Long, @Path("rol") rol: String): Response<String>
+
+    @PUT("usuarios/{usuarioId}/quitar-rol/{rol}")
+    suspend fun quitarRolAUsuario(@Path("usuarioId") usuarioId: Long, @Path("rol") rol: String): Response<String>
+
+    @PUT("usuarios/{usuarioId}/resetear-roles")
+    suspend fun resetearRolesUsuario(@Path("usuarioId") usuarioId: Long): Response<String>
+
+    @PUT("usuarios/{usuarioId}/asignar-emprendedor/{emprendedorId}")
+    suspend fun asignarUsuarioAEmprendedor(@Path("usuarioId") usuarioId: Long, @Path("emprendedorId") emprendedorId: Long): Response<String>
+
+    @PUT("usuarios/{usuarioId}/cambiar-emprendedor/{emprendedorId}")
+    suspend fun cambiarUsuarioDeEmprendedor(@Path("usuarioId") usuarioId: Long, @Path("emprendedorId") emprendedorId: Long): Response<String>
+
+    @DELETE("usuarios/{usuarioId}/desasignar-emprendedor")
+    suspend fun desasignarUsuarioDeEmprendedor(@Path("usuarioId") usuarioId: Long): Response<String>
 }
