@@ -92,7 +92,7 @@ public class PlanTuristicoController {
     
     @GetMapping("/mis-planes")
     @Operation(summary = "Obtener mis planes (usuario autenticado)")
-    @PreAuthorize("hasRole('MUNICIPALIDAD') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_EMPRENDEDOR', 'ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<List<PlanTuristicoResponse>> getMisPlanes() {
         List<PlanTuristicoResponse> planes = planService.getMisPlanes();
         return ResponseEntity.ok(planes);
@@ -107,7 +107,7 @@ public class PlanTuristicoController {
     
     @PostMapping
     @Operation(summary = "Crear nuevo plan turístico")
-    @PreAuthorize("hasRole('MUNICIPALIDAD') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_EMPRENDEDOR', 'ROLE_ADMIN', 'ROLE_MUNICIPALIDAD')")
     public ResponseEntity<PlanTuristicoResponse> createPlan(
             @Valid @RequestBody PlanTuristicoRequest request) {
         PlanTuristicoResponse plan = planService.createPlan(request);
@@ -116,7 +116,7 @@ public class PlanTuristicoController {
     
     @PutMapping("/{id}")
     @Operation(summary = "Actualizar plan turístico")
-    @PreAuthorize("hasRole('MUNICIPALIDAD') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_EMPRENDEDOR', 'ROLE_ADMIN', 'ROLE_MUNICIPALIDAD')")
     public ResponseEntity<PlanTuristicoResponse> updatePlan(
             @Parameter(description = "ID del plan") @PathVariable Long id,
             @Valid @RequestBody PlanTuristicoRequest request) {
@@ -126,7 +126,7 @@ public class PlanTuristicoController {
     
     @DeleteMapping("/{id}")
     @Operation(summary = "Eliminar plan turístico")
-    @PreAuthorize("hasRole('MUNICIPALIDAD') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_EMPRENDEDOR', 'ROLE_ADMIN', 'ROLE_MUNICIPALIDAD')")
     public ResponseEntity<Void> deletePlan(
             @Parameter(description = "ID del plan") @PathVariable Long id) {
         planService.deletePlan(id);
@@ -135,7 +135,7 @@ public class PlanTuristicoController {
     
     @PatchMapping("/{id}/estado")
     @Operation(summary = "Cambiar estado del plan")
-    @PreAuthorize("hasRole('MUNICIPALIDAD') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_EMPRENDEDOR', 'ROLE_ADMIN', 'ROLE_MUNICIPALIDAD')")
     public ResponseEntity<PlanTuristicoResponse> cambiarEstado(
             @Parameter(description = "ID del plan") @PathVariable Long id,
             @Parameter(description = "Nuevo estado") @RequestParam PlanTuristico.EstadoPlan estado) {

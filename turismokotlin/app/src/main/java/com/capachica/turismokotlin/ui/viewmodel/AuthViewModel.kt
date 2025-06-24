@@ -22,6 +22,9 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
 
     private val _isLoggedIn = MutableStateFlow(false)
     val isLoggedIn: StateFlow<Boolean> = _isLoggedIn
+    
+    private val _userRoles = MutableStateFlow<List<String>>(emptyList())
+    val userRoles: StateFlow<List<String>> = _userRoles
 
     init {
         // Verificar estado de login al iniciar el ViewModel
@@ -66,6 +69,9 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         viewModelScope.launch {
             repository.isUserLoggedIn().collect { isLoggedIn ->
                 _isLoggedIn.value = isLoggedIn
+            }
+            repository.getUserRoles().collect { roles ->
+                _userRoles.value = roles
             }
         }
     }

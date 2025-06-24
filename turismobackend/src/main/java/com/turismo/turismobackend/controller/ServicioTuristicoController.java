@@ -91,7 +91,7 @@ public class ServicioTuristicoController {
     
     @GetMapping("/mis-servicios")
     @Operation(summary = "Obtener mis servicios (emprendedor autenticado)")
-    @PreAuthorize("hasRole('EMPRENDEDOR')")
+    @PreAuthorize("hasRole('ROLE_EMPRENDEDOR') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<ServicioTuristicoResponse>> getMisServicios() {
         List<ServicioTuristicoResponse> servicios = servicioService.getMisServicios();
         return ResponseEntity.ok(servicios);
@@ -99,7 +99,7 @@ public class ServicioTuristicoController {
     
     @PostMapping
     @Operation(summary = "Crear nuevo servicio turístico")
-    @PreAuthorize("hasRole('EMPRENDEDOR')")
+    @PreAuthorize("hasRole('ROLE_EMPRENDEDOR') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<ServicioTuristicoResponse> createServicio(
             @Valid @RequestBody ServicioTuristicoRequest request) {
         ServicioTuristicoResponse servicio = servicioService.createServicio(request);
@@ -108,7 +108,7 @@ public class ServicioTuristicoController {
     
     @PutMapping("/{id}")
     @Operation(summary = "Actualizar servicio turístico")
-    @PreAuthorize("hasRole('EMPRENDEDOR')")
+    @PreAuthorize("hasRole('ROLE_EMPRENDEDOR') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<ServicioTuristicoResponse> updateServicio(
             @Parameter(description = "ID del servicio") @PathVariable Long id,
             @Valid @RequestBody ServicioTuristicoRequest request) {
@@ -118,7 +118,7 @@ public class ServicioTuristicoController {
     
     @DeleteMapping("/{id}")
     @Operation(summary = "Eliminar servicio turístico")
-    @PreAuthorize("hasRole('EMPRENDEDOR')")
+    @PreAuthorize("hasRole('ROLE_EMPRENDEDOR') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteServicio(
             @Parameter(description = "ID del servicio") @PathVariable Long id) {
         servicioService.deleteServicio(id);
@@ -127,7 +127,7 @@ public class ServicioTuristicoController {
     
     @PatchMapping("/{id}/estado")
     @Operation(summary = "Cambiar estado del servicio")
-    @PreAuthorize("hasRole('EMPRENDEDOR')")
+    @PreAuthorize("hasRole('ROLE_EMPRENDEDOR') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<ServicioTuristicoResponse> cambiarEstado(
             @Parameter(description = "ID del servicio") @PathVariable Long id,
             @Parameter(description = "Nuevo estado") @RequestParam ServicioTuristico.EstadoServicio estado) {

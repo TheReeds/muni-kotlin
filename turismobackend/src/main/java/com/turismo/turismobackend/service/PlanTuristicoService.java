@@ -95,13 +95,32 @@ public class PlanTuristicoService {
             municipalidad = municipalidadRepository.findByUsuarioId(usuario.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Municipalidad", "usuario_id", usuario.getId()));
         } else if (hasRole("ROLE_ADMIN")) {
-            // Si es admin, debe especificar la municipalidad en el request (se podría agregar este campo)
-            // Por ahora asumimos que el admin maneja la primera municipalidad
-            municipalidad = municipalidadRepository.findAll().get(0);
+            if (request.getMunicipalidadId() == null) {
+                throw new RuntimeException("Admin debe especificar la municipalidad en el request");
+            }
+            municipalidad = municipalidadRepository.findById(request.getMunicipalidadId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Municipalidad", "id", request.getMunicipalidadId()));
         } else {
             throw new RuntimeException("No tiene permisos para crear planes turísticos");
         }
         
+        // Calcular precio total ANTES de crear el plan
+        BigDecimal precioTotal = BigDecimal.ZERO;
+        for (ServicioPlanRequest servicioRequest : request.getServicios()) {
+            ServicioTuristico servicio = servicioRepository.findById(servicioRequest.getServicioId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Servicio", "id", servicioRequest.getServicioId()));
+            
+            // Calcular precio del servicio
+            BigDecimal precioServicio = servicioRequest.getPrecioEspecial() != null 
+                    ? servicioRequest.getPrecioEspecial() 
+                    : servicio.getPrecio();
+            
+            if (!servicioRequest.getEsOpcional()) {
+                precioTotal = precioTotal.add(precioServicio);
+            }
+        }
+        
+        // Crear plan con el precio total ya calculado
         PlanTuristico plan = PlanTuristico.builder()
                 .nombre(request.getNombre())
                 .descripcion(request.getDescripcion())
@@ -115,6 +134,7 @@ public class PlanTuristicoService {
                 .recomendaciones(request.getRecomendaciones())
                 .requisitos(request.getRequisitos())
                 .estado(PlanTuristico.EstadoPlan.BORRADOR)
+                .precioTotal(precioTotal)
                 .municipalidad(municipalidad)
                 .usuarioCreador(usuario)
                 .build();
@@ -122,7 +142,6 @@ public class PlanTuristicoService {
         PlanTuristico savedPlan = planRepository.save(plan);
         
         // Agregar servicios al plan
-        BigDecimal precioTotal = BigDecimal.ZERO;
         for (ServicioPlanRequest servicioRequest : request.getServicios()) {
             ServicioTuristico servicio = servicioRepository.findById(servicioRequest.getServicioId())
                     .orElseThrow(() -> new ResourceNotFoundException("Servicio", "id", servicioRequest.getServicioId()));
@@ -141,19 +160,7 @@ public class PlanTuristicoService {
                     .build();
             
             servicioPlanRepository.save(servicioPlan);
-            
-            // Calcular precio total
-            BigDecimal precioServicio = servicioRequest.getPrecioEspecial() != null 
-                    ? servicioRequest.getPrecioEspecial() 
-                    : servicio.getPrecio();
-            
-            if (!servicioRequest.getEsOpcional()) {
-                precioTotal = precioTotal.add(precioServicio);
-            }
         }
-        
-        savedPlan.setPrecioTotal(precioTotal);
-        savedPlan = planRepository.save(savedPlan);
         
         return convertToResponse(savedPlan);
     }
@@ -180,6 +187,41 @@ public class PlanTuristicoService {
         plan.setRecomendaciones(request.getRecomendaciones());
         plan.setRequisitos(request.getRequisitos());
         
+        // Eliminar servicios existentes del plan
+        servicioPlanRepository.deleteByPlanId(id);
+        
+        // Agregar nuevos servicios y recalcular precio
+        BigDecimal precioTotal = BigDecimal.ZERO;
+        for (ServicioPlanRequest servicioRequest : request.getServicios()) {
+            ServicioTuristico servicio = servicioRepository.findById(servicioRequest.getServicioId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Servicio", "id", servicioRequest.getServicioId()));
+            
+            ServicioPlan servicioPlan = ServicioPlan.builder()
+                    .plan(plan)
+                    .servicio(servicio)
+                    .diaDelPlan(servicioRequest.getDiaDelPlan())
+                    .ordenEnElDia(servicioRequest.getOrdenEnElDia())
+                    .horaInicio(servicioRequest.getHoraInicio())
+                    .horaFin(servicioRequest.getHoraFin())
+                    .precioEspecial(servicioRequest.getPrecioEspecial())
+                    .notas(servicioRequest.getNotas())
+                    .esOpcional(servicioRequest.getEsOpcional())
+                    .esPersonalizable(servicioRequest.getEsPersonalizable())
+                    .build();
+            
+            servicioPlanRepository.save(servicioPlan);
+            
+            // Calcular precio total
+            BigDecimal precioServicio = servicioRequest.getPrecioEspecial() != null 
+                    ? servicioRequest.getPrecioEspecial() 
+                    : servicio.getPrecio();
+            
+            if (!servicioRequest.getEsOpcional()) {
+                precioTotal = precioTotal.add(precioServicio);
+            }
+        }
+        
+        plan.setPrecioTotal(precioTotal);
         PlanTuristico updatedPlan = planRepository.save(plan);
         return convertToResponse(updatedPlan);
     }
@@ -301,7 +343,11 @@ public class PlanTuristicoService {
     }
     
     private Usuario getCurrentUser() {
-        return (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!(principal instanceof Usuario)) {
+            throw new RuntimeException("Usuario no autenticado correctamente");
+        }
+        return (Usuario) principal;
     }
     
     private boolean hasRole(String role) {

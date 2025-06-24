@@ -33,6 +33,9 @@ import com.capachica.turismokotlin.ui.screens.municipalidad.MunicipalidadFormScr
 import com.capachica.turismokotlin.ui.screens.municipalidad.MunicipalidadesScreen
 import com.capachica.turismokotlin.ui.screens.planes.PlanesUsuarioScreen
 import com.capachica.turismokotlin.ui.screens.planes.PlanDetailScreen
+import com.capachica.turismokotlin.ui.screens.planes.PlanManagementScreen
+import com.capachica.turismokotlin.ui.screens.planes.PlanFormScreen
+import com.capachica.turismokotlin.ui.screens.planes.MisPlanesScreen
 import com.capachica.turismokotlin.ui.screens.reservas.ReservaFormScreen
 import com.capachica.turismokotlin.ui.screens.reservas.MisReservasScreen
 import com.capachica.turismokotlin.ui.screens.reservas.ReservaDetailScreen
@@ -90,6 +93,9 @@ object Routes {
     // Nuevas rutas para el módulo de turismo
     const val PLANES_USUARIO = "planes_usuario"
     const val PLAN_DETAIL = "plan_detail/{id}"
+    const val PLAN_MANAGEMENT = "plan_management"
+    const val PLAN_FORM = "plan_form/{id}"
+    const val MIS_PLANES = "mis_planes"
     const val RESERVA_FORM = "reserva_form/{planId}"
     const val MIS_RESERVAS = "mis_reservas"
     const val RESERVA_DETAIL = "reserva_detail/{id}"
@@ -161,6 +167,9 @@ fun TurismoApp(factory: ViewModelFactory) {
                 },
                 onNavigateToPlanes = {
                     navController.navigate(Routes.PLANES_USUARIO)
+                },
+                onNavigateToMisPlanes = {
+                    navController.navigate(Routes.MIS_PLANES)
                 },
                 onNavigateToMisReservas = {
                     navController.navigate(Routes.MIS_RESERVAS)
@@ -450,6 +459,45 @@ fun TurismoApp(factory: ViewModelFactory) {
             )
         }
         
+        // Formulario de plan turístico
+        composable(
+            route = Routes.PLAN_FORM,
+            arguments = listOf(navArgument("id") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getLong("id") ?: 0L
+            PlanFormScreen(
+                planId = id,
+                onBack = {
+                    navController.popBackStack()
+                },
+                factory = factory
+            )
+        }
+        
+        // Mis planes turísticos
+        composable(Routes.MIS_PLANES) {
+            MisPlanesScreen(
+                onNavigateToDetail = { id ->
+                    val route = Routes.PLAN_DETAIL.replace("{id}", id.toString())
+                    navController.navigate(route)
+                },
+                onNavigateToCreate = {
+                    Log.d(TAG, "Navegando al formulario de crear plan desde mis planes")
+                    val route = Routes.PLAN_FORM.replace("{id}", "0")
+                    navController.navigate(route)
+                },
+                onNavigateToEdit = { id ->
+                    Log.d(TAG, "Navegando al formulario de editar plan desde mis planes: $id")
+                    val route = Routes.PLAN_FORM.replace("{id}", id.toString())
+                    navController.navigate(route)
+                },
+                onBack = {
+                    navController.popBackStack()
+                },
+                factory = factory
+            )
+        }
+        
         // Formulario de reserva
         composable(
             route = Routes.RESERVA_FORM,
@@ -616,14 +664,20 @@ fun TurismoApp(factory: ViewModelFactory) {
         
         // Administración de planes
         composable(Routes.ADMIN_PLANES) {
-            AdminPlanesScreen(
+            PlanManagementScreen(
                 onNavigateToDetail = { id ->
                     val route = Routes.PLAN_DETAIL.replace("{id}", id.toString())
                     navController.navigate(route)
                 },
                 onNavigateToCreate = {
                     Log.d(TAG, "Navegando al formulario de crear plan")
-                    // TODO: Implementar ruta para crear plan
+                    val route = Routes.PLAN_FORM.replace("{id}", "0")
+                    navController.navigate(route)
+                },
+                onNavigateToEdit = { id ->
+                    Log.d(TAG, "Navegando al formulario de editar plan: $id")
+                    val route = Routes.PLAN_FORM.replace("{id}", id.toString())
+                    navController.navigate(route)
                 },
                 onBack = {
                     navController.popBackStack()

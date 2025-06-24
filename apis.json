@@ -29,6 +29,195 @@
     }
   ],
   "paths": {
+    "/api/usuarios/{usuarioId}/resetear-roles": {
+      "put": {
+        "tags": [
+          "usuario-controller"
+        ],
+        "operationId": "resetearRolesUsuario",
+        "parameters": [
+          {
+            "name": "usuarioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/{usuarioId}/quitar-rol/{rol}": {
+      "put": {
+        "tags": [
+          "usuario-controller"
+        ],
+        "operationId": "quitarRolAUsuario",
+        "parameters": [
+          {
+            "name": "usuarioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "rol",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/{usuarioId}/cambiar-emprendedor/{emprendedorId}": {
+      "put": {
+        "tags": [
+          "usuario-controller"
+        ],
+        "operationId": "cambiarUsuarioDeEmprendedor",
+        "parameters": [
+          {
+            "name": "usuarioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "emprendedorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/{usuarioId}/asignar-rol/{rol}": {
+      "put": {
+        "tags": [
+          "usuario-controller"
+        ],
+        "operationId": "asignarRolAUsuario",
+        "parameters": [
+          {
+            "name": "usuarioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "rol",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/{usuarioId}/asignar-emprendedor/{emprendedorId}": {
+      "put": {
+        "tags": [
+          "usuario-controller"
+        ],
+        "operationId": "asignarUsuarioAEmprendedor",
+        "parameters": [
+          {
+            "name": "usuarioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "emprendedorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/servicios/{id}": {
       "get": {
         "tags": [
@@ -1206,6 +1395,116 @@
         }
       }
     },
+    "/api/usuarios": {
+      "get": {
+        "tags": [
+          "usuario-controller"
+        ],
+        "operationId": "getAllUsuarios",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UsuarioResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/{id}": {
+      "get": {
+        "tags": [
+          "usuario-controller"
+        ],
+        "operationId": "getUsuarioById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/sin-emprendedor": {
+      "get": {
+        "tags": [
+          "usuario-controller"
+        ],
+        "operationId": "getUsuariosSinEmprendedor",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UsuarioResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/con-rol/{rol}": {
+      "get": {
+        "tags": [
+          "usuario-controller"
+        ],
+        "operationId": "getUsuariosPorRol",
+        "parameters": [
+          {
+            "name": "rol",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UsuarioResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/servicios/tipo/{tipo}": {
       "get": {
         "tags": [
@@ -2330,6 +2629,37 @@
           "auth-controller"
         ],
         "operationId": "initRoles",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/{usuarioId}/desasignar-emprendedor": {
+      "delete": {
+        "tags": [
+          "usuario-controller"
+        ],
+        "operationId": "desasignarUsuarioDeEmprendedor",
+        "parameters": [
+          {
+            "name": "usuarioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -3489,6 +3819,36 @@
           "password",
           "username"
         ]
+      },
+      "UsuarioResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "apellido": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "emprendedor": {
+            "$ref": "#/components/schemas/EmprendedorResumen"
+          }
+        }
       }
     }
   }

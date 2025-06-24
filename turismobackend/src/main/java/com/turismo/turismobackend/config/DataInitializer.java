@@ -1,5 +1,6 @@
 package com.turismo.turismobackend.config;
 
+import com.turismo.turismobackend.dto.request.CategoriaRequest;
 import com.turismo.turismobackend.dto.request.EmprendedorRequest;
 import com.turismo.turismobackend.dto.request.MunicipalidadRequest;
 import com.turismo.turismobackend.dto.request.RegisterRequest;
@@ -7,6 +8,7 @@ import com.turismo.turismobackend.model.Rol;
 import com.turismo.turismobackend.model.Usuario;
 import com.turismo.turismobackend.repository.UsuarioRepository;
 import com.turismo.turismobackend.service.AuthService;
+import com.turismo.turismobackend.service.CategoriaService;
 import com.turismo.turismobackend.service.EmprendedorService;
 import com.turismo.turismobackend.service.MunicipalidadService;
 import lombok.RequiredArgsConstructor;
@@ -29,14 +31,30 @@ public class DataInitializer implements CommandLineRunner {
     private final UsuarioRepository usuarioRepository;
     private final MunicipalidadService municipalidadService;
     private final EmprendedorService emprendedorService;
+    private final CategoriaService categoriaService;
     
     @Override
     public void run(String... args) {
         // Inicializar los roles en la base de datos
         authService.initRoles();
         
+        // Crear categorías si no existen
+        createCategoriesIfNotExist();
+        
         // Crear usuarios demo si no existen
         createDemoUsersIfNotExist();
+    }
+    
+    private void createCategoriesIfNotExist() {
+        // Crear categorías principales de emprendimientos turísticos
+        createCategoryWithAuth("Gastronomía", "Restaurantes, cafeterías, cocina tradicional y especialidades locales");
+        createCategoryWithAuth("Artesanía", "Productos artesanales, tejidos, cerámicas, joyería y arte tradicional");
+        createCategoryWithAuth("Turismo Ecológico", "Ecoturismo, aventura, turismo sostenible y actividades al aire libre");
+        createCategoryWithAuth("Turismo Cultural", "Tours culturales, sitios históricos, danzas tradicionales y patrimonio");
+        createCategoryWithAuth("Alojamiento", "Hoteles, hostales, casas rurales y hospedajes comunitarios");
+        createCategoryWithAuth("Transporte", "Servicios de transporte turístico, tours en vehículo y movilidad");
+        createCategoryWithAuth("Wellness y Spa", "Servicios de relajación, spa, tratamientos naturales y bienestar");
+        createCategoryWithAuth("Deportes de Aventura", "Trekking, montañismo, deportes extremos y aventura");
     }
     
     private void createDemoUsersIfNotExist() {
@@ -94,41 +112,41 @@ public class DataInitializer implements CommandLineRunner {
                 "Jr. Pizarro 412", "044-246941", "www.munitrujillo.gob.pe", 
                 "La Municipalidad Provincial de Trujillo trabaja por el desarrollo sostenible y la promoción del turismo cultural.");
         
-        // 5. Crear perfiles de emprendedores
+        // 5. Crear perfiles de emprendedores con categorías asignadas
         createEmprendedorWithAuth(empJuanResponse.getId(), "Café Peruano", "Gastronomía", 
                 "Jr. Comercio 345, Lima", "01-987654", "cafeperu@ejemplo.com", "www.cafeperu.com",
                 "Café de especialidad con granos seleccionados de diversas regiones del Perú.",
-                "Café orgánico, postres artesanales, bebidas frías", "Barismo, catas de café", 1L);
+                "Café orgánico, postres artesanales, bebidas frías", "Barismo, catas de café", 1L, 1L); // Gastronomía
         
         createEmprendedorWithAuth(empMariaResponse.getId(), "Artesanías Cusco", "Artesanía", 
                 "Calle Plateros 123, Cusco", "084-765432", "artesanias@ejemplo.com", "www.artesaniascusco.com",
                 "Taller de artesanías tradicionales cusqueñas elaboradas por artesanos locales.",
-                "Tejidos, cerámicas, joyería de plata", "Talleres de tejido, visitas guiadas", 2L);
+                "Tejidos, cerámicas, joyería de plata", "Talleres de tejido, visitas guiadas", 2L, 2L); // Artesanía
         
         createEmprendedorWithAuth(empCarlosResponse.getId(), "Ecoturismo Amazónico", "Turismo Ecológico", 
                 "Av. La Marina 456, Iquitos", "065-234567", "ecoturismo@ejemplo.com", "www.ecoturismoamazonico.com",
                 "Empresa dedicada al turismo sostenible y respetuoso con el medio ambiente en la Amazonía peruana.",
-                "Paquetes turísticos, souvenirs ecológicos", "Tours guiados, expediciones fotográficas, avistamiento de fauna", 1L);
+                "Paquetes turísticos, souvenirs ecológicos", "Tours guiados, expediciones fotográficas, avistamiento de fauna", 1L, 3L); // Turismo Ecológico
         
         createEmprendedorWithAuth(empLuisaResponse.getId(), "Sabores Arequipeños", "Gastronomía", 
                 "Calle Santa Catalina 678, Arequipa", "054-345678", "sabores@ejemplo.com", "www.saboresarequipenos.com",
                 "Restaurante especializado en la auténtica gastronomía arequipeña con ingredientes locales.",
-                "Rocoto relleno, chupe de camarones, queso helado", "Clases de cocina, degustaciones", 3L);
+                "Rocoto relleno, chupe de camarones, queso helado", "Clases de cocina, degustaciones", 3L, 1L); // Gastronomía
         
         createEmprendedorWithAuth(empPedroResponse.getId(), "Aventura Andina", "Turismo de Aventura", 
                 "Av. Sol 789, Cusco", "084-876543", "aventura@ejemplo.com", "www.aventuraandina.com",
                 "Operador turístico especializado en deportes de aventura y trekking en la región andina.",
-                "Equipos de montaña, indumentaria técnica", "Trekking, montañismo, ciclismo de montaña", 2L);
+                "Equipos de montaña, indumentaria técnica", "Trekking, montañismo, ciclismo de montaña", 2L, 8L); // Deportes de Aventura
         
         createEmprendedorWithAuth(empSofiaResponse.getId(), "Cerámica Chulucanas", "Artesanía", 
                 "Jr. Grau 234, Piura", "073-654321", "ceramica@ejemplo.com", "www.ceramicachulucanas.com",
                 "Taller artesanal que preserva y promueve la tradicional cerámica de Chulucanas.",
-                "Cerámicas decorativas, jarrones, esculturas", "Demostraciones de técnicas ancestrales, talleres", 4L);
+                "Cerámicas decorativas, jarrones, esculturas", "Demostraciones de técnicas ancestrales, talleres", 4L, 2L); // Artesanía
         
         createEmprendedorWithAuth(empDiegoResponse.getId(), "Marinera Tours", "Turismo Cultural", 
                 "Av. España 567, Trujillo", "044-789012", "marinera@ejemplo.com", "www.marineratours.com",
                 "Empresa dedicada a promover la cultura y tradiciones de la costa norte, especialmente la marinera.",
-                "Souvenirs culturales, vestuario típico", "Clases de marinera, tours culturales, visitas a sitios arqueológicos", 5L);
+                "Souvenirs culturales, vestuario típico", "Clases de marinera, tours culturales, visitas a sitios arqueológicos", 5L, 4L); // Turismo Cultural
     }
     
     private com.turismo.turismobackend.dto.response.AuthResponse createMunicipalidad(
@@ -190,7 +208,7 @@ public class DataInitializer implements CommandLineRunner {
     private void createEmprendedorWithAuth(Long userId, String nombreEmpresa, String rubro, String direccion,
                                          String telefono, String email, String sitioWeb,
                                          String descripcion, String productos, String servicios,
-                                         Long municipalidadId) {
+                                         Long municipalidadId, Long categoriaId) {
         // Obtener usuario
         Usuario usuario = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
@@ -213,8 +231,33 @@ public class DataInitializer implements CommandLineRunner {
                 .productos(productos)
                 .servicios(servicios)
                 .municipalidadId(municipalidadId)
+                .categoriaId(categoriaId)
                 .build();
         
         emprendedorService.createEmprendedor(request);
+    }
+    
+    private void createCategoryWithAuth(String nombre, String descripcion) {
+        // Configurar autenticación temporal como admin para crear categorías
+        Usuario adminUser = usuarioRepository.findByUsername("admin")
+                .orElseThrow(() -> new RuntimeException("Usuario admin no encontrado"));
+        
+        SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_ADMIN");
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                adminUser, null, List.of(authority));
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        
+        // Crear categoría
+        CategoriaRequest request = CategoriaRequest.builder()
+                .nombre(nombre)
+                .descripcion(descripcion)
+                .build();
+        
+        try {
+            categoriaService.createCategoria(request);
+        } catch (Exception e) {
+            // Si la categoría ya existe, no hacer nada
+            System.out.println("Categoría '" + nombre + "' ya existe o error: " + e.getMessage());
+        }
     }
 }

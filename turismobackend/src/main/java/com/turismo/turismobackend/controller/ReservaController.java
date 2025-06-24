@@ -25,7 +25,7 @@ public class ReservaController {
     
     @GetMapping
     @Operation(summary = "Obtener todas las reservas (solo admin)")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<ReservaResponse>> getAllReservas() {
         List<ReservaResponse> reservas = reservaService.getAllReservas();
         return ResponseEntity.ok(reservas);
@@ -49,7 +49,6 @@ public class ReservaController {
     
     @GetMapping("/mis-reservas")
     @Operation(summary = "Obtener mis reservas (usuario autenticado)")
-    @PreAuthorize("hasRole('USER') or hasRole('EMPRENDEDOR') or hasRole('MUNICIPALIDAD')")
     public ResponseEntity<List<ReservaResponse>> getMisReservas() {
         List<ReservaResponse> reservas = reservaService.getMisReservas();
         return ResponseEntity.ok(reservas);
@@ -57,7 +56,7 @@ public class ReservaController {
     
     @GetMapping("/plan/{planId}")
     @Operation(summary = "Obtener reservas por plan turístico")
-    @PreAuthorize("hasRole('MUNICIPALIDAD') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
     public ResponseEntity<List<ReservaResponse>> getReservasByPlan(
             @Parameter(description = "ID del plan turístico") @PathVariable Long planId) {
         List<ReservaResponse> reservas = reservaService.getReservasByPlan(planId);
@@ -66,7 +65,7 @@ public class ReservaController {
     
     @GetMapping("/municipalidad/{municipalidadId}")
     @Operation(summary = "Obtener reservas por municipalidad")
-    @PreAuthorize("hasRole('MUNICIPALIDAD') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_MUNICIPALIDAD') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<ReservaResponse>> getReservasByMunicipalidad(
             @Parameter(description = "ID de la municipalidad") @PathVariable Long municipalidadId) {
         List<ReservaResponse> reservas = reservaService.getReservasByMunicipalidad(municipalidadId);
@@ -75,7 +74,7 @@ public class ReservaController {
     
     @PostMapping
     @Operation(summary = "Crear nueva reserva")
-    @PreAuthorize("hasRole('USER') or hasRole('EMPRENDEDOR') or hasRole('MUNICIPALIDAD')")
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_EMPRENDEDOR') or hasRole('ROLE_MUNICIPALIDAD')")
     public ResponseEntity<ReservaResponse> createReserva(
             @Valid @RequestBody ReservaRequest request) {
         ReservaResponse reserva = reservaService.createReserva(request);
@@ -84,7 +83,7 @@ public class ReservaController {
     
     @PatchMapping("/{id}/confirmar")
     @Operation(summary = "Confirmar reserva")
-    @PreAuthorize("hasRole('MUNICIPALIDAD') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_MUNICIPALIDAD') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<ReservaResponse> confirmarReserva(
             @Parameter(description = "ID de la reserva") @PathVariable Long id) {
         ReservaResponse reserva = reservaService.confirmarReserva(id);
@@ -102,7 +101,7 @@ public class ReservaController {
     
     @PatchMapping("/{id}/completar")
     @Operation(summary = "Completar reserva")
-    @PreAuthorize("hasRole('MUNICIPALIDAD') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_MUNICIPALIDAD') or hasRole('ROLE_ADMIN')")
     public ResponseEntity<ReservaResponse> completarReserva(
             @Parameter(description = "ID de la reserva") @PathVariable Long id) {
         ReservaResponse reserva = reservaService.completarReserva(id);

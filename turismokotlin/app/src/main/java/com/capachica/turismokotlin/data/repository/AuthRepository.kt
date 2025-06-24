@@ -95,10 +95,18 @@ class AuthRepository(
     suspend fun isUserLoggedIn(): Flow<Boolean> = flow {
         // Si hay un token almacenado, consideramos que el usuario está logueado
         try {
-            val token = sessionManager.getAuthToken()?.first()
+            val token = sessionManager.getAuthToken().first()
             emit(token != null)
         } catch (e: Exception) {
             emit(false)
+        }
+    }
+    
+    suspend fun getUserRoles(): Flow<List<String>> = flow {
+        try {
+            emit(sessionManager.getUserRoles().first())
+        } catch (e: Exception) {
+            emit(emptyList())
         }
     }
 }

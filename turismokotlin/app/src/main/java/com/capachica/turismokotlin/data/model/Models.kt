@@ -244,6 +244,7 @@ data class PlanTuristicoRequest(
     val noIncluye: String? = null,
     val recomendaciones: String? = null,
     val requisitos: String? = null,
+    val municipalidadId: Long? = null, // Solo requerido para ADMIN
     val servicios: List<ServicioPlanRequest>
 ) : Parcelable
 

@@ -45,6 +45,9 @@ public class PlanTuristicoRequest {
     
     private String requisitos;
     
+    // Solo requerido para ADMIN, las municipalidades usan su propia municipalidad
+    private Long municipalidadId;
+    
     @NotNull(message = "Los servicios son obligatorios")
     private List<ServicioPlanRequest> servicios;
 }

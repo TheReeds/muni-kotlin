@@ -30,6 +30,7 @@ fun HomeScreen(
     onNavigateToEmprendedores: () -> Unit,
     onNavigateToCategorias: () -> Unit,
     onNavigateToPlanes: () -> Unit,
+    onNavigateToMisPlanes: (() -> Unit)?,
     onNavigateToMisReservas: () -> Unit,
     onNavigateToServicios: () -> Unit,
     onNavigateToAdmin: (() -> Unit)?,

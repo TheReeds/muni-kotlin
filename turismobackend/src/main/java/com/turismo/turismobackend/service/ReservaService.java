@@ -299,7 +299,11 @@ public class ReservaService {
     }
     
     private Usuario getCurrentUser() {
-        return (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!(principal instanceof Usuario)) {
+            throw new RuntimeException("Usuario no autenticado correctamente");
+        }
+        return (Usuario) principal;
     }
     
     private boolean hasRole(String role) {

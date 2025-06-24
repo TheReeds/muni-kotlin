@@ -20,11 +20,11 @@ class PlanTuristicoViewModel(
     private val _planState = MutableStateFlow<Result<PlanTuristico>>(Result.Loading)
     val planState: StateFlow<Result<PlanTuristico>> = _planState
     
-    private val _createUpdateState = MutableStateFlow<Result<PlanTuristico>>(Result.Loading)
-    val createUpdateState: StateFlow<Result<PlanTuristico>> = _createUpdateState
+    private val _createUpdateState = MutableStateFlow<Result<PlanTuristico>?>(null)
+    val createUpdateState: StateFlow<Result<PlanTuristico>?> = _createUpdateState
     
-    private val _deleteState = MutableStateFlow<Result<Boolean>>(Result.Loading)
-    val deleteState: StateFlow<Result<Boolean>> = _deleteState
+    private val _deleteState = MutableStateFlow<Result<Boolean>?>(null)
+    val deleteState: StateFlow<Result<Boolean>?> = _deleteState
     
     private val _cambiarEstadoState = MutableStateFlow<Result<PlanTuristico>>(Result.Loading)
     val cambiarEstadoState: StateFlow<Result<PlanTuristico>> = _cambiarEstadoState
@@ -150,6 +150,7 @@ class PlanTuristicoViewModel(
     }
     
     fun createPlan(request: PlanTuristicoRequest) {
+        _createUpdateState.value = Result.Loading
         viewModelScope.launch {
             repository.createPlan(request)
                 .catch { e ->
@@ -162,6 +163,7 @@ class PlanTuristicoViewModel(
     }
     
     fun updatePlan(id: Long, request: PlanTuristicoRequest) {
+        _createUpdateState.value = Result.Loading
         viewModelScope.launch {
             repository.updatePlan(id, request)
                 .catch { e ->
@@ -174,6 +176,7 @@ class PlanTuristicoViewModel(
     }
     
     fun deletePlan(id: Long) {
+        _deleteState.value = Result.Loading
         viewModelScope.launch {
             repository.deletePlan(id)
                 .catch { e ->
@@ -197,9 +200,13 @@ class PlanTuristicoViewModel(
         }
     }
     
-    fun clearStates() {
-        _createUpdateState.value = Result.Loading
-        _deleteState.value = Result.Loading
+    fun resetStates() {
+        _createUpdateState.value = null
+        _deleteState.value = null
         _cambiarEstadoState.value = Result.Loading
+    }
+    
+    fun resetDeleteState() {
+        _deleteState.value = null
     }
 }
