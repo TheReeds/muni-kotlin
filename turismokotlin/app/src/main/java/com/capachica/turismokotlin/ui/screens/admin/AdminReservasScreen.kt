@@ -266,6 +266,8 @@ fun AdminReservasScreen(
                         }
                     }
                 }
+
+                null -> TODO()
             }
         }
     }

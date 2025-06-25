@@ -124,6 +124,8 @@ fun MisReservasScreen(
                     }
                 }
             }
+
+            null -> TODO()
         }
     }
 }

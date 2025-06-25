@@ -14,23 +14,23 @@ class ReservaViewModel(
     private val repository: ReservaRepository
 ) : ViewModel() {
     
-    private val _reservasState = MutableStateFlow<Result<List<Reserva>>>(Result.Loading)
-    val reservasState: StateFlow<Result<List<Reserva>>> = _reservasState
+    private val _reservasState = MutableStateFlow<Result<List<Reserva>>?>(null)
+    val reservasState: StateFlow<Result<List<Reserva>>?> = _reservasState
     
-    private val _reservaState = MutableStateFlow<Result<Reserva>>(Result.Loading)
-    val reservaState: StateFlow<Result<Reserva>> = _reservaState
+    private val _reservaState = MutableStateFlow<Result<Reserva>?>(null)
+    val reservaState: StateFlow<Result<Reserva>?> = _reservaState
     
-    private val _createState = MutableStateFlow<Result<Reserva>>(Result.Loading)
-    val createState: StateFlow<Result<Reserva>> = _createState
+    private val _createState = MutableStateFlow<Result<Reserva>?>(null)
+    val createState: StateFlow<Result<Reserva>?> = _createState
     
-    private val _confirmarState = MutableStateFlow<Result<Reserva>>(Result.Loading)
-    val confirmarState: StateFlow<Result<Reserva>> = _confirmarState
+    private val _confirmarState = MutableStateFlow<Result<Reserva>?>(null)
+    val confirmarState: StateFlow<Result<Reserva>?> = _confirmarState
     
-    private val _cancelarState = MutableStateFlow<Result<Reserva>>(Result.Loading)
-    val cancelarState: StateFlow<Result<Reserva>> = _cancelarState
+    private val _cancelarState = MutableStateFlow<Result<Reserva>?>(null)
+    val cancelarState: StateFlow<Result<Reserva>?> = _cancelarState
     
-    private val _completarState = MutableStateFlow<Result<Reserva>>(Result.Loading)
-    val completarState: StateFlow<Result<Reserva>> = _completarState
+    private val _completarState = MutableStateFlow<Result<Reserva>?>(null)
+    val completarState: StateFlow<Result<Reserva>?> = _completarState
     
     fun getAllReservas() {
         viewModelScope.launch {
@@ -153,9 +153,9 @@ class ReservaViewModel(
     }
     
     fun clearStates() {
-        _createState.value = Result.Loading
-        _confirmarState.value = Result.Loading
-        _cancelarState.value = Result.Loading
-        _completarState.value = Result.Loading
+        _createState.value = null
+        _confirmarState.value = null
+        _cancelarState.value = null
+        _completarState.value = null
     }
 }

@@ -63,11 +63,13 @@ fun AdminDashboardScreen(
         ) {
             // Estadísticas generales
             item {
-                StatsSection(
-                    reservasState = reservasState,
-                    planesState = planesState,
-                    serviciosState = serviciosState
-                )
+                reservasState?.let {
+                    StatsSection(
+                        reservasState = it,
+                        planesState = planesState,
+                        serviciosState = serviciosState
+                    )
+                }
             }
             
             // Accesos rápidos
@@ -83,10 +85,12 @@ fun AdminDashboardScreen(
             
             // Reservas recientes
             item {
-                RecentReservasSection(
-                    reservasState = reservasState,
-                    onSeeAll = onNavigateToReservas
-                )
+                reservasState?.let {
+                    RecentReservasSection(
+                        reservasState = it,
+                        onSeeAll = onNavigateToReservas
+                    )
+                }
             }
             
             // Planes populares

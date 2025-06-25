@@ -165,6 +165,8 @@ fun ReservaDetailScreen(
                     }
                 }
             }
+
+            null -> TODO()
         }
     }
 }

@@ -55,9 +55,10 @@ fun ReservaFormScreen(
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     
-    // Cargar datos del plan
+    // Cargar datos del plan y limpiar estados
     LaunchedEffect(planId) {
         planViewModel.getPlanById(planId)
+        reservaViewModel.clearStates()
     }
     
     // Manejar resultado de la reserva
