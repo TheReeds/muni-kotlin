@@ -125,7 +125,7 @@ fun MisReservasScreen(
                 }
             }
 
-            null -> TODO()
+            null -> LoadingScreen()
         }
     }
 }

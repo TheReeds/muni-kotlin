@@ -74,7 +74,7 @@ public class ReservaController {
     
     @PostMapping
     @Operation(summary = "Crear nueva reserva")
-    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_EMPRENDEDOR') or hasRole('ROLE_MUNICIPALIDAD')")
+    @PreAuthorize("hasAnyRole('ROLE_EMPRENDEDOR', 'ROLE_ADMIN', 'ROLE_MUNICIPALIDAD', 'ROLE_USER')")
     public ResponseEntity<ReservaResponse> createReserva(
             @Valid @RequestBody ReservaRequest request) {
         ReservaResponse reserva = reservaService.createReserva(request);

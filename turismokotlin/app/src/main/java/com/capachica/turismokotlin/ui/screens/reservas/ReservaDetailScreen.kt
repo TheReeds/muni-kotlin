@@ -166,7 +166,7 @@ fun ReservaDetailScreen(
                 }
             }
 
-            null -> TODO()
+            null -> LoadingScreen()
         }
     }
 }

@@ -22,7 +22,14 @@ import com.capachica.turismokotlin.ui.viewmodel.PlanTuristicoViewModel
 import com.capachica.turismokotlin.ui.viewmodel.ReservaViewModel
 import com.capachica.turismokotlin.ui.viewmodel.ViewModelFactory
 import kotlinx.coroutines.launch
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.DatePickerState
+import androidx.compose.material3.rememberDatePickerState
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,7 +61,7 @@ fun ReservaFormScreen(
     var showMetodoPagoDialog by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
-    
+    val datePickerState = rememberDatePickerState()
     // Cargar datos del plan y limpiar estados
     LaunchedEffect(planId) {
         planViewModel.getPlanById(planId)
@@ -107,6 +114,31 @@ fun ReservaFormScreen(
             )
         }
     ) { paddingValues ->
+        if (showDatePicker) {
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    Button(onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val selectedDate = Instant.ofEpochMilli(millis)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                            fechaInicio = selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
+                        }
+                        showDatePicker = false
+                    }) {
+                        Text("Seleccionar")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDatePicker = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            ) {
+                DatePicker(state = datePickerState)
+            }
+        }
         when (val state = planState) {
             is Result.Loading -> LoadingScreen()
             is Result.Error -> ErrorScreen(
