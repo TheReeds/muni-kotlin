@@ -12,6 +12,22 @@
   ],
   "tags": [
     {
+      "name": "Ubicaciones",
+      "description": "API para gestión de ubicaciones y mapas"
+    },
+    {
+      "name": "Reservas desde Carrito",
+      "description": "API para gestión de reservas creadas desde el carrito"
+    },
+    {
+      "name": "Carrito",
+      "description": "API para gestión del carrito de compras"
+    },
+    {
+      "name": "Chat",
+      "description": "API para sistema de chat entre usuarios y emprendedores"
+    },
+    {
       "name": "Pagos",
       "description": "API para gestión de pagos de reservas"
     },
@@ -211,6 +227,92 @@
               "*/*": {
                 "schema": {
                   "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ubicaciones/servicio/{servicioId}": {
+      "put": {
+        "tags": [
+          "Ubicaciones"
+        ],
+        "summary": "Actualizar ubicación de servicio turístico",
+        "operationId": "actualizarUbicacionServicio",
+        "parameters": [
+          {
+            "name": "servicioId",
+            "in": "path",
+            "description": "ID del servicio",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UbicacionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UbicacionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ubicaciones/emprendedor/{emprendedorId}": {
+      "put": {
+        "tags": [
+          "Ubicaciones"
+        ],
+        "summary": "Actualizar ubicación de emprendedor",
+        "operationId": "actualizarUbicacionEmprendedor",
+        "parameters": [
+          {
+            "name": "emprendedorId",
+            "in": "path",
+            "description": "ID del emprendedor",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UbicacionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UbicacionResponse"
                 }
               }
             }
@@ -690,6 +792,80 @@
         }
       }
     },
+    "/api/carrito/item/{itemId}": {
+      "put": {
+        "tags": [
+          "Carrito"
+        ],
+        "summary": "Actualizar cantidad de un item",
+        "operationId": "actualizarCantidad",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "description": "ID del item",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "cantidad",
+            "in": "query",
+            "description": "Nueva cantidad",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CarritoResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Carrito"
+        ],
+        "summary": "Eliminar item del carrito",
+        "operationId": "eliminarItem",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "description": "ID del item",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CarritoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/servicios": {
       "get": {
         "tags": [
@@ -789,6 +965,37 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ReservaResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas-carrito/crear": {
+      "post": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Crear reserva desde carrito",
+        "operationId": "crearReservaDesdeCarrito",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReservaCarritoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservaCarritoResponse"
                 }
               }
             }
@@ -1004,6 +1211,168 @@
         }
       }
     },
+    "/api/chat/reserva-carrito/{reservaCarritoId}/mensaje-rapido": {
+      "post": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Enviar mensaje rápido a todos los emprendedores de una reserva",
+        "operationId": "enviarMensajeRapidoAReserva",
+        "parameters": [
+          {
+            "name": "reservaCarritoId",
+            "in": "path",
+            "description": "ID de la reserva carrito",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "mensaje",
+            "in": "query",
+            "description": "Mensaje a enviar",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatMensajeResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/mensaje": {
+      "post": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Enviar mensaje en conversación",
+        "operationId": "enviarMensaje",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatMensajeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatMensajeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/conversacion/iniciar": {
+      "post": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Iniciar conversación con emprendedor",
+        "operationId": "iniciarConversacion",
+        "parameters": [
+          {
+            "name": "emprendedorId",
+            "in": "query",
+            "description": "ID del emprendedor",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "reservaId",
+            "in": "query",
+            "description": "ID de la reserva (opcional)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatConversacionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/conversacion/iniciar-carrito": {
+      "post": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Iniciar conversación con emprendedor desde reserva carrito",
+        "operationId": "iniciarConversacionConReservaCarrito",
+        "parameters": [
+          {
+            "name": "emprendedorId",
+            "in": "query",
+            "description": "ID del emprendedor",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "reservaCarritoId",
+            "in": "query",
+            "description": "ID de la reserva carrito (opcional)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatConversacionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/categorias": {
       "get": {
         "tags": [
@@ -1048,6 +1417,37 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/CategoriaResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/carrito/agregar": {
+      "post": {
+        "tags": [
+          "Carrito"
+        ],
+        "summary": "Agregar item al carrito",
+        "operationId": "agregarItem",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CarritoItemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CarritoResponse"
                 }
               }
             }
@@ -1271,6 +1671,114 @@
         }
       }
     },
+    "/api/reservas-carrito/{id}/confirmar": {
+      "patch": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Confirmar reserva",
+        "operationId": "confirmarReserva_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID de la reserva",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservaCarritoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas-carrito/{id}/completar": {
+      "patch": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Marcar reserva como completada",
+        "operationId": "completarReserva_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID de la reserva",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservaCarritoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas-carrito/{id}/cancelar": {
+      "patch": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Cancelar reserva con motivo",
+        "operationId": "cancelarReserva_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID de la reserva",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "motivo",
+            "in": "query",
+            "description": "Motivo de cancelación",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservaCarritoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/planes/{id}/estado": {
       "patch": {
         "tags": [
@@ -1395,6 +1903,84 @@
         }
       }
     },
+    "/api/chat/conversacion/{conversacionId}/marcar-leidos": {
+      "patch": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Marcar mensajes como leídos",
+        "operationId": "marcarMensajesComoLeidos",
+        "parameters": [
+          {
+            "name": "conversacionId",
+            "in": "path",
+            "description": "ID de la conversación",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/chat/conversacion/{conversacionId}/cerrar": {
+      "patch": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Cerrar conversación",
+        "operationId": "cerrarConversacion",
+        "parameters": [
+          {
+            "name": "conversacionId",
+            "in": "path",
+            "description": "ID de la conversación",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/chat/conversacion/{conversacionId}/archivar": {
+      "patch": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Archivar conversación",
+        "operationId": "archivarConversacion",
+        "parameters": [
+          {
+            "name": "conversacionId",
+            "in": "path",
+            "description": "ID de la conversación",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/usuarios": {
       "get": {
         "tags": [
@@ -1498,6 +2084,317 @@
                   "items": {
                     "$ref": "#/components/schemas/UsuarioResponse"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ubicaciones/validar-coordenadas": {
+      "get": {
+        "tags": [
+          "Ubicaciones"
+        ],
+        "summary": "Validar si las coordenadas son válidas",
+        "operationId": "validarCoordenadas",
+        "parameters": [
+          {
+            "name": "latitud",
+            "in": "query",
+            "description": "Latitud a validar",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "longitud",
+            "in": "query",
+            "description": "Longitud a validar",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ubicaciones/servicios": {
+      "get": {
+        "tags": [
+          "Ubicaciones"
+        ],
+        "summary": "Obtener ubicaciones de servicios turísticos para mapa",
+        "operationId": "obtenerUbicacionesServicios",
+        "parameters": [
+          {
+            "name": "tipoServicio",
+            "in": "query",
+            "description": "Tipo de servicio (TOUR, ALOJAMIENTO, etc.)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "municipalidadId",
+            "in": "query",
+            "description": "ID de municipalidad (opcional)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "latitud",
+            "in": "query",
+            "description": "Latitud centro de búsqueda",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "longitud",
+            "in": "query",
+            "description": "Longitud centro de búsqueda",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "radio",
+            "in": "query",
+            "description": "Radio de búsqueda en km",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServicioTuristicoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ubicaciones/emprendedores": {
+      "get": {
+        "tags": [
+          "Ubicaciones"
+        ],
+        "summary": "Obtener ubicaciones de emprendedores para mostrar en mapa",
+        "operationId": "obtenerUbicacionesEmprendedores",
+        "parameters": [
+          {
+            "name": "municipalidadId",
+            "in": "query",
+            "description": "ID de municipalidad (opcional)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "latitud",
+            "in": "query",
+            "description": "Latitud centro de búsqueda",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "longitud",
+            "in": "query",
+            "description": "Longitud centro de búsqueda",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "radio",
+            "in": "query",
+            "description": "Radio de búsqueda en km",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EmprendedorResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ubicaciones/distancia": {
+      "get": {
+        "tags": [
+          "Ubicaciones"
+        ],
+        "summary": "Calcular distancia entre dos puntos",
+        "operationId": "calcularDistancia",
+        "parameters": [
+          {
+            "name": "lat1",
+            "in": "query",
+            "description": "Latitud punto 1",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "lng1",
+            "in": "query",
+            "description": "Longitud punto 1",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "lat2",
+            "in": "query",
+            "description": "Latitud punto 2",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "lng2",
+            "in": "query",
+            "description": "Longitud punto 2",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "number",
+                  "format": "double"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ubicaciones/cercanos": {
+      "get": {
+        "tags": [
+          "Ubicaciones"
+        ],
+        "summary": "Buscar emprendedores y servicios cercanos a una ubicación",
+        "operationId": "buscarCercanos",
+        "parameters": [
+          {
+            "name": "latitud",
+            "in": "query",
+            "description": "Latitud del punto de búsqueda",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "longitud",
+            "in": "query",
+            "description": "Longitud del punto de búsqueda",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "radio",
+            "in": "query",
+            "description": "Radio de búsqueda en km",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "default": 5
+            }
+          },
+          {
+            "name": "tipo",
+            "in": "query",
+            "description": "Tipo: 'emprendedores' o 'servicios'",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object"
                 }
               }
             }
@@ -1769,6 +2666,63 @@
         }
       }
     },
+    "/api/servicios/cercanos": {
+      "get": {
+        "tags": [
+          "Servicios Turísticos"
+        ],
+        "summary": "Obtener servicios cercanos a una ubicación",
+        "operationId": "getServiciosCercanos",
+        "parameters": [
+          {
+            "name": "latitud",
+            "in": "query",
+            "description": "Latitud",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "longitud",
+            "in": "query",
+            "description": "Longitud",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "radio",
+            "in": "query",
+            "description": "Radio en km",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "default": 5
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServicioTuristicoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/reservas/{id}": {
       "get": {
         "tags": [
@@ -1923,6 +2877,211 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ReservaResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas-carrito/{id}": {
+      "get": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Obtener reserva por ID",
+        "operationId": "obtenerReservaPorId",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID de la reserva",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservaCarritoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas-carrito/{id}/conversaciones": {
+      "get": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Obtener conversaciones de chat de una reserva",
+        "operationId": "obtenerConversacionesDeReserva",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID de la reserva",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatConversacionResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas-carrito/mis-reservas": {
+      "get": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Obtener mis reservas ordenadas por fecha",
+        "operationId": "obtenerMisReservas",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReservaCarritoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas-carrito/estado/{estado}": {
+      "get": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Filtrar mis reservas por estado",
+        "operationId": "obtenerReservasPorEstado",
+        "parameters": [
+          {
+            "name": "estado",
+            "in": "path",
+            "description": "Estado de la reserva",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReservaCarritoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas-carrito/estadisticas": {
+      "get": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Obtener estadísticas de reservas del usuario",
+        "operationId": "obtenerEstadisticasReservas",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas-carrito/emprendedor/reservas": {
+      "get": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Obtener reservas para emprendedor autenticado",
+        "operationId": "obtenerReservasPorEmprendedor",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReservaCarritoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas-carrito/codigo/{codigo}": {
+      "get": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Obtener reserva por código único",
+        "operationId": "obtenerReservaPorCodigo",
+        "parameters": [
+          {
+            "name": "codigo",
+            "in": "path",
+            "description": "Código de la reserva",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservaCarritoResponse"
                 }
               }
             }
@@ -2589,6 +3748,63 @@
         }
       }
     },
+    "/api/emprendedores/cercanos": {
+      "get": {
+        "tags": [
+          "emprendedor-controller"
+        ],
+        "summary": "Obtener emprendedores cercanos a una ubicación",
+        "operationId": "getEmprendedoresCercanos",
+        "parameters": [
+          {
+            "name": "latitud",
+            "in": "query",
+            "description": "Latitud",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "longitud",
+            "in": "query",
+            "description": "Longitud",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "radio",
+            "in": "query",
+            "description": "Radio en km",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "default": 5
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EmprendedorResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/emprendedores/categoria/{categoriaId}": {
       "get": {
         "tags": [
@@ -2616,6 +3832,243 @@
                   "items": {
                     "$ref": "#/components/schemas/EmprendedorResponse"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/reserva-carrito/{reservaCarritoId}/conversaciones": {
+      "get": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Obtener conversaciones por reserva carrito",
+        "operationId": "obtenerConversacionesPorReservaCarrito",
+        "parameters": [
+          {
+            "name": "reservaCarritoId",
+            "in": "path",
+            "description": "ID de la reserva carrito",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatConversacionResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/mensajes-no-leidos": {
+      "get": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Contar mensajes no leídos del usuario",
+        "operationId": "contarMensajesNoLeidos",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/conversaciones": {
+      "get": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Obtener conversaciones del usuario autenticado",
+        "operationId": "obtenerConversaciones",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatConversacionResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/conversacion/{conversacionId}": {
+      "get": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Obtener detalles de una conversación específica",
+        "operationId": "obtenerConversacion",
+        "parameters": [
+          {
+            "name": "conversacionId",
+            "in": "path",
+            "description": "ID de la conversación",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatConversacionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/conversacion/{conversacionId}/mensajes": {
+      "get": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Obtener mensajes de una conversación con paginación",
+        "operationId": "obtenerMensajes",
+        "parameters": [
+          {
+            "name": "conversacionId",
+            "in": "path",
+            "description": "ID de la conversación",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "description": "Número de página (0 basado)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "tamaño",
+            "in": "query",
+            "description": "Tamaño de página",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatMensajeResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/carrito": {
+      "get": {
+        "tags": [
+          "Carrito"
+        ],
+        "summary": "Obtener carrito del usuario autenticado",
+        "operationId": "obtenerCarrito",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CarritoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/carrito/total": {
+      "get": {
+        "tags": [
+          "Carrito"
+        ],
+        "summary": "Obtener total del carrito",
+        "operationId": "obtenerTotalCarrito",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CarritoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/carrito/contar": {
+      "get": {
+        "tags": [
+          "Carrito"
+        ],
+        "summary": "Contar items en el carrito",
+        "operationId": "contarItems",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
                 }
               }
             }
@@ -2673,10 +4126,67 @@
           }
         }
       }
+    },
+    "/api/carrito/limpiar": {
+      "delete": {
+        "tags": [
+          "Carrito"
+        ],
+        "summary": "Limpiar carrito completo",
+        "operationId": "limpiarCarrito",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "UbicacionRequest": {
+        "type": "object",
+        "properties": {
+          "latitud": {
+            "type": "number",
+            "format": "double",
+            "maximum": 90,
+            "minimum": -90
+          },
+          "longitud": {
+            "type": "number",
+            "format": "double",
+            "maximum": 180,
+            "minimum": -180
+          },
+          "direccionCompleta": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "latitud",
+          "longitud"
+        ]
+      },
+      "UbicacionResponse": {
+        "type": "object",
+        "properties": {
+          "latitud": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitud": {
+            "type": "number",
+            "format": "double"
+          },
+          "direccionCompleta": {
+            "type": "string"
+          },
+          "tieneUbicacionValida": {
+            "type": "boolean"
+          }
+        }
+      },
       "ServicioTuristicoRequest": {
         "type": "object",
         "properties": {
@@ -2716,6 +4226,14 @@
           },
           "ubicacion": {
             "type": "string"
+          },
+          "latitud": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitud": {
+            "type": "number",
+            "format": "double"
           },
           "requisitos": {
             "type": "string"
@@ -2835,6 +4353,14 @@
           "ubicacion": {
             "type": "string"
           },
+          "latitud": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitud": {
+            "type": "number",
+            "format": "double"
+          },
           "requisitos": {
             "type": "string"
           },
@@ -2896,6 +4422,10 @@
           },
           "requisitos": {
             "type": "string"
+          },
+          "municipalidadId": {
+            "type": "integer",
+            "format": "int64"
           },
           "servicios": {
             "type": "array",
@@ -3213,6 +4743,17 @@
           "direccion": {
             "type": "string"
           },
+          "latitud": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitud": {
+            "type": "number",
+            "format": "double"
+          },
+          "direccionCompleta": {
+            "type": "string"
+          },
           "telefono": {
             "type": "string"
           },
@@ -3272,6 +4813,17 @@
             "type": "string"
           },
           "direccion": {
+            "type": "string"
+          },
+          "latitud": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitud": {
+            "type": "number",
+            "format": "double"
+          },
+          "direccionCompleta": {
             "type": "string"
           },
           "telefono": {
@@ -3351,6 +4903,120 @@
           "cantidadEmprendedores": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "CarritoItemResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cantidad": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "precioUnitario": {
+            "type": "number"
+          },
+          "subtotal": {
+            "type": "number"
+          },
+          "fechaServicio": {
+            "type": "string",
+            "format": "date"
+          },
+          "notasEspeciales": {
+            "type": "string"
+          },
+          "fechaAgregado": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "servicio": {
+            "$ref": "#/components/schemas/ServicioTuristicoBasicResponse"
+          }
+        }
+      },
+      "CarritoResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "usuarioId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "fechaCreacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaActualizacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "totalCarrito": {
+            "type": "number"
+          },
+          "totalItems": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CarritoItemResponse"
+            }
+          }
+        }
+      },
+      "ServicioTuristicoBasicResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "precio": {
+            "type": "number"
+          },
+          "duracionHoras": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "ALOJAMIENTO",
+              "TRANSPORTE",
+              "ALIMENTACION",
+              "GUIA_TURISTICO",
+              "ACTIVIDAD_RECREATIVA",
+              "TOUR",
+              "AVENTURA",
+              "CULTURAL",
+              "GASTRONOMICO",
+              "WELLNESS",
+              "OTRO"
+            ]
+          },
+          "imagenUrl": {
+            "type": "string"
+          },
+          "ubicacion": {
+            "$ref": "#/components/schemas/UbicacionResponse"
+          },
+          "emprendedor": {
+            "$ref": "#/components/schemas/EmprendedorBasicResponse"
           }
         }
       },
@@ -3685,6 +5351,217 @@
           }
         }
       },
+      "ReservaCarritoRequest": {
+        "type": "object",
+        "properties": {
+          "observaciones": {
+            "type": "string"
+          },
+          "contactoEmergencia": {
+            "type": "string"
+          },
+          "telefonoEmergencia": {
+            "type": "string"
+          },
+          "metodoPago": {
+            "type": "string",
+            "enum": [
+              "EFECTIVO",
+              "TARJETA_CREDITO",
+              "TARJETA_DEBITO",
+              "TRANSFERENCIA",
+              "PAGO_MOVIL",
+              "PAYPAL",
+              "OTRO"
+            ]
+          }
+        }
+      },
+      "PagoCarritoResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "codigoPago": {
+            "type": "string"
+          },
+          "monto": {
+            "type": "number"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "SEÑA",
+              "PAGO_COMPLETO",
+              "PAGO_PARCIAL",
+              "SALDO_PENDIENTE"
+            ]
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "PENDIENTE",
+              "PROCESANDO",
+              "CONFIRMADO",
+              "FALLIDO",
+              "REEMBOLSADO",
+              "CANCELADO"
+            ]
+          },
+          "metodoPago": {
+            "type": "string",
+            "enum": [
+              "EFECTIVO",
+              "TARJETA_CREDITO",
+              "TARJETA_DEBITO",
+              "TRANSFERENCIA",
+              "PAGO_MOVIL",
+              "PAYPAL",
+              "OTRO"
+            ]
+          },
+          "numeroTransaccion": {
+            "type": "string"
+          },
+          "numeroAutorizacion": {
+            "type": "string"
+          },
+          "observaciones": {
+            "type": "string"
+          },
+          "fechaPago": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaConfirmacion": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ReservaCarritoItemResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cantidad": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "precioUnitario": {
+            "type": "number"
+          },
+          "subtotal": {
+            "type": "number"
+          },
+          "fechaServicio": {
+            "type": "string",
+            "format": "date"
+          },
+          "notasEspeciales": {
+            "type": "string"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "PENDIENTE",
+              "CONFIRMADO",
+              "COMPLETADO",
+              "CANCELADO"
+            ]
+          },
+          "servicio": {
+            "$ref": "#/components/schemas/ServicioTuristicoBasicResponse"
+          }
+        }
+      },
+      "ReservaCarritoResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "codigoReserva": {
+            "type": "string"
+          },
+          "montoTotal": {
+            "type": "number"
+          },
+          "montoDescuento": {
+            "type": "number"
+          },
+          "montoFinal": {
+            "type": "number"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "PENDIENTE",
+              "CONFIRMADA",
+              "PAGADA",
+              "EN_PROCESO",
+              "COMPLETADA",
+              "CANCELADA"
+            ]
+          },
+          "metodoPago": {
+            "type": "string",
+            "enum": [
+              "EFECTIVO",
+              "TARJETA_CREDITO",
+              "TARJETA_DEBITO",
+              "TRANSFERENCIA",
+              "PAGO_MOVIL",
+              "PAYPAL",
+              "OTRO"
+            ]
+          },
+          "observaciones": {
+            "type": "string"
+          },
+          "contactoEmergencia": {
+            "type": "string"
+          },
+          "telefonoEmergencia": {
+            "type": "string"
+          },
+          "fechaReserva": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaConfirmacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaCancelacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "motivoCancelacion": {
+            "type": "string"
+          },
+          "usuario": {
+            "$ref": "#/components/schemas/UsuarioBasicResponse"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReservaCarritoItemResponse"
+            }
+          },
+          "pagos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PagoCarritoResponse"
+            }
+          }
+        }
+      },
       "PagoRequest": {
         "type": "object",
         "properties": {
@@ -3731,6 +5608,180 @@
           "monto",
           "reservaId",
           "tipo"
+        ]
+      },
+      "ChatMensajeResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "conversacionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "mensaje": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "TEXTO",
+              "IMAGEN",
+              "ARCHIVO",
+              "SISTEMA"
+            ]
+          },
+          "fechaEnvio": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "leido": {
+            "type": "boolean"
+          },
+          "esDeEmprendedor": {
+            "type": "boolean"
+          },
+          "remitenteId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "remitenteNombre": {
+            "type": "string"
+          },
+          "archivoUrl": {
+            "type": "string"
+          },
+          "archivoNombre": {
+            "type": "string"
+          },
+          "archivoTipo": {
+            "type": "string"
+          }
+        }
+      },
+      "ChatMensajeRequest": {
+        "type": "object",
+        "properties": {
+          "conversacionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "mensaje": {
+            "type": "string",
+            "minLength": 1
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "TEXTO",
+              "IMAGEN",
+              "ARCHIVO",
+              "SISTEMA"
+            ]
+          },
+          "archivoUrl": {
+            "type": "string"
+          },
+          "archivoNombre": {
+            "type": "string"
+          },
+          "archivoTipo": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "conversacionId",
+          "mensaje"
+        ]
+      },
+      "ChatConversacionResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "usuarioId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "emprendedorId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "reservaId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "reservaCarritoId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "codigoReservaAsociada": {
+            "type": "string"
+          },
+          "fechaCreacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaUltimoMensaje": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "ACTIVA",
+              "CERRADA",
+              "ARCHIVADA"
+            ]
+          },
+          "usuario": {
+            "$ref": "#/components/schemas/UsuarioBasicResponse"
+          },
+          "emprendedor": {
+            "$ref": "#/components/schemas/EmprendedorBasicResponse"
+          },
+          "ultimoMensaje": {
+            "$ref": "#/components/schemas/ChatMensajeResponse"
+          },
+          "mensajesNoLeidos": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "mensajesRecientes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatMensajeResponse"
+            }
+          }
+        }
+      },
+      "CarritoItemRequest": {
+        "type": "object",
+        "properties": {
+          "servicioId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cantidad": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fechaServicio": {
+            "type": "string",
+            "format": "date"
+          },
+          "notasEspeciales": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cantidad",
+          "fechaServicio",
+          "servicioId"
         ]
       },
       "RegisterRequest": {
