@@ -47,6 +47,13 @@ public class ServicioTuristico {
     
     private String ubicacion;
     
+    // NUEVOS CAMPOS DE UBICACIÓN
+    @Column(name = "latitud")
+    private Double latitud;
+    
+    @Column(name = "longitud")
+    private Double longitud;
+    
     @Column(columnDefinition = "TEXT")
     private String requisitos;
     
@@ -65,6 +72,18 @@ public class ServicioTuristico {
     @Builder.Default
     @OneToMany(mappedBy = "servicio", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ServicioPlan> servicioPlan = new ArrayList<>();
+    
+    // RELACIÓN CON CARRITO ITEMS
+    @Builder.Default
+    @OneToMany(mappedBy = "servicio", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CarritoItem> carritoItems = new ArrayList<>();
+    
+    // MÉTODO PARA VALIDAR COORDENADAS
+    public boolean tieneUbicacionValida() {
+        return latitud != null && longitud != null && 
+               latitud >= -90 && latitud <= 90 && 
+               longitud >= -180 && longitud <= 180;
+    }
     
     public enum TipoServicio {
         ALOJAMIENTO,

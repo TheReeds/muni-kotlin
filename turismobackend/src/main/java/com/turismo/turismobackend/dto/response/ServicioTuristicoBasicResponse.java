@@ -12,25 +12,15 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ServicioTuristicoResponse {
+public class ServicioTuristicoBasicResponse {
     
     private Long id;
     private String nombre;
     private String descripcion;
     private BigDecimal precio;
     private Integer duracionHoras;
-    private Integer capacidadMaxima;
     private ServicioTuristico.TipoServicio tipo;
-    private ServicioTuristico.EstadoServicio estado;
-    private String ubicacion;
-    
-    // NUEVOS CAMPOS DE UBICACIÓN
-    private Double latitud;
-    private Double longitud;
-    
-    private String requisitos;
-    private String incluye;
-    private String noIncluye;
     private String imagenUrl;
+    private UbicacionResponse ubicacion;
     private EmprendedorBasicResponse emprendedor;
 }

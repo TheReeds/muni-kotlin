@@ -3,6 +3,9 @@ package com.turismo.turismobackend.controller;
 import com.turismo.turismobackend.dto.request.EmprendedorRequest;
 import com.turismo.turismobackend.dto.response.EmprendedorResponse;
 import com.turismo.turismobackend.service.EmprendedorService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -68,5 +71,14 @@ public class EmprendedorController {
     public ResponseEntity<Void> deleteEmprendedor(@PathVariable Long id) {
         emprendedorService.deleteEmprendedor(id);
         return ResponseEntity.noContent().build();
+    }
+    @GetMapping("/cercanos")
+    @Operation(summary = "Obtener emprendedores cercanos a una ubicación")
+    public ResponseEntity<List<EmprendedorResponse>> getEmprendedoresCercanos(
+            @Parameter(description = "Latitud") @RequestParam Double latitud,
+            @Parameter(description = "Longitud") @RequestParam Double longitud,
+            @Parameter(description = "Radio en km") @RequestParam(defaultValue = "5.0") Double radio) {
+        List<EmprendedorResponse> emprendedores = emprendedorService.getEmprendedoresCercanos(latitud, longitud, radio);
+        return ResponseEntity.ok(emprendedores);
     }
 }

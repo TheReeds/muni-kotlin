@@ -4,6 +4,7 @@ import com.turismo.turismobackend.dto.request.ReservaRequest;
 import com.turismo.turismobackend.dto.response.*;
 import com.turismo.turismobackend.exception.ResourceNotFoundException;
 import com.turismo.turismobackend.model.*;
+import com.turismo.turismobackend.dto.request.ReservaServicioRequest;
 import com.turismo.turismobackend.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -104,20 +105,33 @@ public class ReservaService {
         Usuario usuario = getCurrentUser();
         
         PlanTuristico plan = planRepository.findById(request.getPlanId())
-                .orElseThrow(() -> new ResourceNotFoundException("Plan", "id", request.getPlanId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Plan turístico", "id", request.getPlanId()));
         
-        // Verificar que el plan está activo
+        // VALIDACIONES MEJORADAS
+        
+        // 1. Verificar que el plan esté activo
         if (plan.getEstado() != PlanTuristico.EstadoPlan.ACTIVO) {
-            throw new RuntimeException("El plan no está disponible para reservas");
+            throw new RuntimeException("El plan turístico no está disponible para reservas");
         }
         
-        // Verificar disponibilidad
+        // 2. Validar fechas
         LocalDate fechaFin = request.getFechaInicio().plusDays(plan.getDuracionDias() - 1);
-        verificarDisponibilidad(plan, request.getFechaInicio(), request.getNumeroPersonas());
         
-        // Calcular precio total
-        BigDecimal montoTotal = calcularMontoTotal(plan, request);
+        // 3. Verificar disponibilidad de capacidad
+        Long personasReservadas = reservaRepository.countPersonasByPlanAndDate(
+                request.getPlanId(), request.getFechaInicio());
         
+        if (personasReservadas != null && 
+            personasReservadas + request.getNumeroPersonas() > plan.getCapacidadMaxima()) {
+            throw new RuntimeException("No hay suficiente capacidad disponible para las fechas seleccionadas");
+        }
+        
+        // 4. Calcular montos con descuentos aplicables
+        BigDecimal montoTotal = plan.getPrecioTotal().multiply(BigDecimal.valueOf(request.getNumeroPersonas()));
+        BigDecimal montoDescuento = calcularDescuentos(usuario, plan, request.getNumeroPersonas());
+        BigDecimal montoFinal = montoTotal.subtract(montoDescuento);
+        
+        // Crear reserva
         Reserva reserva = Reserva.builder()
                 .plan(plan)
                 .usuario(usuario)
@@ -125,8 +139,8 @@ public class ReservaService {
                 .fechaFin(fechaFin)
                 .numeroPersonas(request.getNumeroPersonas())
                 .montoTotal(montoTotal)
-                .montoDescuento(BigDecimal.ZERO)
-                .montoFinal(montoTotal)
+                .montoDescuento(montoDescuento)
+                .montoFinal(montoFinal)
                 .estado(Reserva.EstadoReserva.PENDIENTE)
                 .metodoPago(request.getMetodoPago())
                 .observaciones(request.getObservaciones())
@@ -137,11 +151,11 @@ public class ReservaService {
         
         Reserva savedReserva = reservaRepository.save(reserva);
         
-        // Crear servicios personalizados si se especificaron
+        // Crear servicios personalizados si se proporcionan
         if (request.getServiciosPersonalizados() != null) {
-            for (var servicioRequest : request.getServiciosPersonalizados()) {
+            for (ReservaServicioRequest servicioRequest : request.getServiciosPersonalizados()) {
                 ServicioPlan servicioPlan = servicioPlanRepository.findById(servicioRequest.getServicioPlanId())
-                        .orElseThrow(() -> new ResourceNotFoundException("ServicioPlan", "id", servicioRequest.getServicioPlanId()));
+                        .orElseThrow(() -> new ResourceNotFoundException("Servicio del plan", "id", servicioRequest.getServicioPlanId()));
                 
                 ReservaServicio reservaServicio = ReservaServicio.builder()
                         .reserva(savedReserva)
@@ -156,7 +170,7 @@ public class ReservaService {
             }
         }
         
-        return convertToResponse(savedReserva);
+        return convertToReservaResponse(savedReserva);
     }
     
     public ReservaResponse confirmarReserva(Long id) {
@@ -310,15 +324,156 @@ public class ReservaService {
         return getCurrentUser().getAuthorities().stream()
                 .anyMatch(authority -> authority.getAuthority().equals(role));
     }
+
+    // NUEVO MÉTODO para calcular descuentos
+    private BigDecimal calcularDescuentos(Usuario usuario, PlanTuristico plan, Integer numeroPersonas) {
+        BigDecimal descuento = BigDecimal.ZERO;
+        
+        // Descuento por grupo grande (más de 5 personas)
+        if (numeroPersonas >= 5) {
+            descuento = descuento.add(plan.getPrecioTotal().multiply(BigDecimal.valueOf(0.10))); // 10% descuento
+        }
+        
+        // Descuento por usuario frecuente (más de 3 reservas completadas)
+        Long reservasCompletadas = reservaRepository.countReservasCompletadasByUsuario(usuario.getId());
+        if (reservasCompletadas != null && reservasCompletadas >= 3) {
+            descuento = descuento.add(plan.getPrecioTotal().multiply(BigDecimal.valueOf(0.05))); // 5% descuento
+        }
+        
+        return descuento;
+    }
     
     private boolean esPropietarioDelPlan(PlanTuristico plan, Usuario usuario) {
         return plan.getUsuarioCreador().getId().equals(usuario.getId()) ||
                (plan.getMunicipalidad().getUsuario() != null && 
                 plan.getMunicipalidad().getUsuario().getId().equals(usuario.getId()));
     }
+
+    private ReservaResponse convertToReservaResponse(Reserva reserva) {
+        return ReservaResponse.builder()
+                .id(reserva.getId())
+                .codigoReserva(reserva.getCodigoReserva())
+                .fechaInicio(reserva.getFechaInicio())
+                .fechaFin(reserva.getFechaFin())
+                .numeroPersonas(reserva.getNumeroPersonas())
+                .montoTotal(reserva.getMontoTotal())
+                .montoDescuento(reserva.getMontoDescuento())
+                .montoFinal(reserva.getMontoFinal())
+                .estado(reserva.getEstado())
+                .metodoPago(reserva.getMetodoPago())
+                .observaciones(reserva.getObservaciones())
+                .solicitudesEspeciales(reserva.getSolicitudesEspeciales())
+                .contactoEmergencia(reserva.getContactoEmergencia())
+                .telefonoEmergencia(reserva.getTelefonoEmergencia())
+                .fechaReserva(reserva.getFechaReserva())
+                .fechaConfirmacion(reserva.getFechaConfirmacion())
+                .fechaCancelacion(reserva.getFechaCancelacion())
+                .motivoCancelacion(reserva.getMotivoCancelacion())
+                .plan(PlanTuristicoBasicResponse.builder()
+                        .id(reserva.getPlan().getId())
+                        .nombre(reserva.getPlan().getNombre())
+                        .descripcion(reserva.getPlan().getDescripcion())
+                        .precioTotal(reserva.getPlan().getPrecioTotal())
+                        .duracionDias(reserva.getPlan().getDuracionDias())
+                        .capacidadMaxima(reserva.getPlan().getCapacidadMaxima())
+                        .estado(reserva.getPlan().getEstado())
+                        .nivelDificultad(reserva.getPlan().getNivelDificultad())
+                        .imagenPrincipalUrl(reserva.getPlan().getImagenPrincipalUrl())
+                        .build())
+                .usuario(UsuarioBasicResponse.builder()
+                        .id(reserva.getUsuario().getId())
+                        .nombre(reserva.getUsuario().getNombre())
+                        .apellido(reserva.getUsuario().getApellido())
+                        .username(reserva.getUsuario().getUsername())
+                        .email(reserva.getUsuario().getEmail())
+                        .build())
+                .serviciosPersonalizados(reserva.getServiciosPersonalizados().stream()
+                        .map(this::convertToReservaServicioResponse)
+                        .collect(Collectors.toList()))
+                .pagos(reserva.getPagos().stream()
+                        .map(this::convertToPagoResponseFromPago)  // USAR TU MODELO EXISTENTE
+                        .collect(Collectors.toList()))
+                .build();
+    }
+    // MÉTODO PARA CONVERTIR TU MODELO PAGO EXISTENTE
+    private PagoResponse convertToPagoResponseFromPago(Pago pago) {
+        return PagoResponse.builder()
+                .id(pago.getId())
+                .codigoPago(pago.getCodigoPago())
+                .monto(pago.getMonto())
+                .tipo(pago.getTipo())
+                .estado(pago.getEstado())
+                .metodoPago(pago.getMetodoPago())
+                .numeroTransaccion(pago.getNumeroTransaccion())
+                .numeroAutorizacion(pago.getNumeroAutorizacion())
+                .observaciones(pago.getObservaciones())
+                .fechaPago(pago.getFechaPago())
+                .fechaConfirmacion(pago.getFechaConfirmacion())
+                .build();
+    }
+    // MÉTODOS AUXILIARES FALTANTES
+    private ReservaServicioResponse convertToReservaServicioResponse(ReservaServicio reservaServicio) {
+        return ReservaServicioResponse.builder()
+                .id(reservaServicio.getId())
+                .incluido(reservaServicio.getIncluido())
+                .precioPersonalizado(reservaServicio.getPrecioPersonalizado())
+                .observaciones(reservaServicio.getObservaciones())
+                .estado(reservaServicio.getEstado())
+                .servicioPlan(convertToServicioPlanResponse(reservaServicio.getServicioPlan()))
+                .build();
+    }
+
+    private PagoCarritoResponse convertToPagoCarritoResponse(PagoCarrito pago) {
+        return PagoCarritoResponse.builder()
+                .id(pago.getId())
+                .codigoPago(pago.getCodigoPago())
+                .monto(pago.getMonto())
+                .tipo(pago.getTipo())
+                .estado(pago.getEstado())
+                .metodoPago(pago.getMetodoPago())
+                .numeroTransaccion(pago.getNumeroTransaccion())
+                .numeroAutorizacion(pago.getNumeroAutorizacion())
+                .observaciones(pago.getObservaciones())
+                .fechaPago(pago.getFechaPago())
+                .fechaConfirmacion(pago.getFechaConfirmacion())
+                // Si necesitas incluir datos de la reserva asociada:
+                //.reservaId(pago.getReservaCarrito().getId())
+                .build();
+    }
+
     
     private boolean perteneceAMunicipalidad(Usuario usuario, Long municipalidadId) {
         // Implementar lógica para verificar si el usuario pertenece a la municipalidad
         return false; // Placeholder
+    }
+    private ServicioPlanResponse convertToServicioPlanResponse(ServicioPlan servicioPlan) {
+        return ServicioPlanResponse.builder()
+                .id(servicioPlan.getId())
+                .diaDelPlan(servicioPlan.getDiaDelPlan())
+                .ordenEnElDia(servicioPlan.getOrdenEnElDia())
+                .horaInicio(servicioPlan.getHoraInicio())
+                .horaFin(servicioPlan.getHoraFin())
+                .precioEspecial(servicioPlan.getPrecioEspecial())
+                .notas(servicioPlan.getNotas())
+                .esOpcional(servicioPlan.getEsOpcional())
+                .esPersonalizable(servicioPlan.getEsPersonalizable())
+                .servicio(ServicioTuristicoResponse.builder()
+                        .id(servicioPlan.getServicio().getId())
+                        .nombre(servicioPlan.getServicio().getNombre())
+                        .descripcion(servicioPlan.getServicio().getDescripcion())
+                        .precio(servicioPlan.getServicio().getPrecio())
+                        .duracionHoras(servicioPlan.getServicio().getDuracionHoras())
+                        .capacidadMaxima(servicioPlan.getServicio().getCapacidadMaxima())
+                        .tipo(servicioPlan.getServicio().getTipo())
+                        .estado(servicioPlan.getServicio().getEstado())
+                        .ubicacion(servicioPlan.getServicio().getUbicacion())
+                        .latitud(servicioPlan.getServicio().getLatitud())
+                        .longitud(servicioPlan.getServicio().getLongitud())
+                        .requisitos(servicioPlan.getServicio().getRequisitos())
+                        .incluye(servicioPlan.getServicio().getIncluye())
+                        .noIncluye(servicioPlan.getServicio().getNoIncluye())
+                        .imagenUrl(servicioPlan.getServicio().getImagenUrl())
+                        .build())
+                .build();
     }
 }

@@ -134,4 +134,13 @@ public class ServicioTuristicoController {
         ServicioTuristicoResponse servicio = servicioService.cambiarEstado(id, estado);
         return ResponseEntity.ok(servicio);
     }
+    @GetMapping("/cercanos")
+    @Operation(summary = "Obtener servicios cercanos a una ubicación")
+    public ResponseEntity<List<ServicioTuristicoResponse>> getServiciosCercanos(
+            @Parameter(description = "Latitud") @RequestParam Double latitud,
+            @Parameter(description = "Longitud") @RequestParam Double longitud,
+            @Parameter(description = "Radio en km") @RequestParam(defaultValue = "5.0") Double radio) {
+        List<ServicioTuristicoResponse> servicios = servicioService.getServiciosCercanos(latitud, longitud, radio);
+        return ResponseEntity.ok(servicios);
+    }
 }

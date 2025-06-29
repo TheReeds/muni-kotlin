@@ -29,6 +29,16 @@ public class Emprendedor {
     
     private String direccion;
     
+    // NUEVOS CAMPOS DE UBICACIÓN
+    @Column(name = "latitud")
+    private Double latitud;
+    
+    @Column(name = "longitud")
+    private Double longitud;
+    
+    @Column(name = "direccion_completa")
+    private String direccionCompleta;
+    
     private String telefono;
     
     private String email;
@@ -59,4 +69,16 @@ public class Emprendedor {
     @Builder.Default
     @OneToMany(mappedBy = "emprendedor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ServicioTuristico> serviciosTuristicos = new ArrayList<>();
+    
+    // RELACIÓN CON MENSAJES DE CHAT
+    @Builder.Default
+    @OneToMany(mappedBy = "emprendedor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChatMensaje> mensajes = new ArrayList<>();
+    
+    // MÉTODO PARA VALIDAR COORDENADAS
+    public boolean tieneUbicacionValida() {
+        return latitud != null && longitud != null && 
+               latitud >= -90 && latitud <= 90 && 
+               longitud >= -180 && longitud <= 180;
+    }
 }

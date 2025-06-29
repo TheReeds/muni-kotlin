@@ -99,6 +99,8 @@ public class ServicioTuristicoService {
                 .tipo(request.getTipo())
                 .estado(ServicioTuristico.EstadoServicio.ACTIVO)
                 .ubicacion(request.getUbicacion())
+                .latitud(request.getLatitud())      // NUEVO CAMPO
+                .longitud(request.getLongitud())    // NUEVO CAMPO
                 .requisitos(request.getRequisitos())
                 .incluye(request.getIncluye())
                 .noIncluye(request.getNoIncluye())
@@ -127,6 +129,8 @@ public class ServicioTuristicoService {
         servicio.setCapacidadMaxima(request.getCapacidadMaxima());
         servicio.setTipo(request.getTipo());
         servicio.setUbicacion(request.getUbicacion());
+        servicio.setLatitud(request.getLatitud());      // NUEVO CAMPO
+        servicio.setLongitud(request.getLongitud());    // NUEVO CAMPO
         servicio.setRequisitos(request.getRequisitos());
         servicio.setIncluye(request.getIncluye());
         servicio.setNoIncluye(request.getNoIncluye());
@@ -175,6 +179,8 @@ public class ServicioTuristicoService {
                 .tipo(servicio.getTipo())
                 .estado(servicio.getEstado())
                 .ubicacion(servicio.getUbicacion())
+                .latitud(servicio.getLatitud())     // NUEVO CAMPO
+                .longitud(servicio.getLongitud())   // NUEVO CAMPO
                 .requisitos(servicio.getRequisitos())
                 .incluye(servicio.getIncluye())
                 .noIncluye(servicio.getNoIncluye())
@@ -199,6 +205,29 @@ public class ServicioTuristicoService {
                         .build())
                 .build();
     }
+    // NUEVO MÉTODO para servicios cercanos
+    public List<ServicioTuristicoResponse> getServiciosCercanos(Double latitud, Double longitud, Double radioKm) {
+        return servicioRepository.findAll().stream()
+                .filter(ServicioTuristico::tieneUbicacionValida)
+                .filter(servicio -> calcularDistancia(latitud, longitud, 
+                        servicio.getLatitud(), servicio.getLongitud()) <= radioKm)
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
+
+    private double calcularDistancia(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371; // Radio de la Tierra en km
+        
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        
+        return R * c;
+    }
+
     
     private Usuario getCurrentUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();

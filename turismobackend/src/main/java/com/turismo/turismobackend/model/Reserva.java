@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -86,13 +87,47 @@ public class Reserva {
     
     @Builder.Default
     @OneToMany(mappedBy = "reserva", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Pago> pagos = new ArrayList<>();
+    private List<Pago> pagos = new ArrayList<>();  // USAR TU MODELO PAGO EXISTENTE
+
+    // FIX: Método para calcular duración
+    public long getDuracionDias() {
+        if (fechaInicio != null && fechaFin != null) {
+            return ChronoUnit.DAYS.between(fechaInicio, fechaFin) + 1;
+        }
+        return 0;
+    }
+    
+    // FIX: Método para verificar si está activa
+    public boolean isActiva() {
+        return estado != EstadoReserva.CANCELADA && 
+               estado != EstadoReserva.COMPLETADA &&
+               estado != EstadoReserva.NO_SHOW;
+    }
     
     @PrePersist
     protected void onCreate() {
+        if (fechaInicio != null && fechaFin != null && fechaInicio.isAfter(fechaFin)) {
+            throw new RuntimeException("La fecha de inicio no puede ser posterior a la fecha de fin");
+        }
+
+        if (fechaInicio != null && fechaInicio.isBefore(LocalDate.now())) {
+            throw new RuntimeException("La fecha de inicio no puede ser anterior a hoy");
+        }
+
         fechaReserva = LocalDateTime.now();
         if (codigoReserva == null) {
             codigoReserva = generarCodigoReserva();
+        }
+    }
+
+    @PreUpdate
+    protected void validateDatesOnUpdate() {
+        if (fechaInicio != null && fechaFin != null && fechaInicio.isAfter(fechaFin)) {
+            throw new RuntimeException("La fecha de inicio no puede ser posterior a la fecha de fin");
+        }
+
+        if (fechaInicio != null && fechaInicio.isBefore(LocalDate.now())) {
+            throw new RuntimeException("La fecha de inicio no puede ser anterior a hoy");
         }
     }
     

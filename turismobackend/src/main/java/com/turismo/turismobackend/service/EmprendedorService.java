@@ -82,11 +82,14 @@ public class EmprendedorService {
                     .orElseThrow(() -> new ResourceNotFoundException("Categoría", "id", request.getCategoriaId()));
         }
         
-        // Crear nuevo emprendedor
+        // Crear nuevo emprendedor con ubicación
         Emprendedor emprendedor = Emprendedor.builder()
                 .nombreEmpresa(request.getNombreEmpresa())
                 .rubro(request.getRubro())
                 .direccion(request.getDireccion())
+                .latitud(request.getLatitud())  // NUEVO CAMPO
+                .longitud(request.getLongitud()) // NUEVO CAMPO
+                .direccionCompleta(request.getDireccionCompleta()) // NUEVO CAMPO
                 .telefono(request.getTelefono())
                 .email(request.getEmail())
                 .sitioWeb(request.getSitioWeb())
@@ -137,6 +140,9 @@ public class EmprendedorService {
         emprendedor.setNombreEmpresa(request.getNombreEmpresa());
         emprendedor.setRubro(request.getRubro());
         emprendedor.setDireccion(request.getDireccion());
+        emprendedor.setLatitud(request.getLatitud());      // NUEVO CAMPO
+        emprendedor.setLongitud(request.getLongitud());    // NUEVO CAMPO
+        emprendedor.setDireccionCompleta(request.getDireccionCompleta()); // NUEVO CAMPO
         emprendedor.setTelefono(request.getTelefono());
         emprendedor.setEmail(request.getEmail());
         emprendedor.setSitioWeb(request.getSitioWeb());
@@ -144,13 +150,13 @@ public class EmprendedorService {
         emprendedor.setProductos(request.getProductos());
         emprendedor.setServicios(request.getServicios());
         emprendedor.setMunicipalidad(municipalidad);
-        emprendedor.setCategoria(categoria); // Puede ser null
+        emprendedor.setCategoria(categoria);
         
         emprendedorRepository.save(emprendedor);
         
         return mapToEmprendedorResponse(emprendedor);
     }
-    
+
     public void deleteEmprendedor(Long id) {
         // Buscar el emprendedor
         Emprendedor emprendedor = emprendedorRepository.findById(id)
@@ -202,6 +208,9 @@ public class EmprendedorService {
                 .nombreEmpresa(emprendedor.getNombreEmpresa())
                 .rubro(emprendedor.getRubro())
                 .direccion(emprendedor.getDireccion())
+                .latitud(emprendedor.getLatitud())      // NUEVO CAMPO
+                .longitud(emprendedor.getLongitud())    // NUEVO CAMPO
+                .direccionCompleta(emprendedor.getDireccionCompleta()) // NUEVO CAMPO
                 .telefono(emprendedor.getTelefono())
                 .email(emprendedor.getEmail())
                 .sitioWeb(emprendedor.getSitioWeb())
@@ -212,5 +221,26 @@ public class EmprendedorService {
                 .municipalidad(municipalidadResumen)
                 .categoria(categoriaResumen)
                 .build();
+    }
+    // NUEVOS MÉTODOS para ubicación
+    public List<EmprendedorResponse> getEmprendedoresCercanos(Double latitud, Double longitud, Double radioKm) {
+        return emprendedorRepository.findAll().stream()
+                .filter(Emprendedor::tieneUbicacionValida)
+                .filter(emp -> calcularDistancia(latitud, longitud, emp.getLatitud(), emp.getLongitud()) <= radioKm)
+                .map(this::mapToEmprendedorResponse)
+                .collect(Collectors.toList());
+    }
+    
+    private double calcularDistancia(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371; // Radio de la Tierra en km
+        
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        
+        return R * c;
     }
 }

@@ -24,6 +24,11 @@ public class EmprendedorRequest {
     
     private String direccion;
     
+    // NUEVOS CAMPOS DE UBICACIÓN
+    private Double latitud;
+    private Double longitud;
+    private String direccionCompleta;
+    
     private String telefono;
     
     @Email(message = "Debe ingresar un email válido")

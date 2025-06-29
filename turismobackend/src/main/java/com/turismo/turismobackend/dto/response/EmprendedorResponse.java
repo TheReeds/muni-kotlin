@@ -14,6 +14,12 @@ public class EmprendedorResponse {
     private String nombreEmpresa;
     private String rubro;
     private String direccion;
+    
+    // NUEVOS CAMPOS DE UBICACIÓN
+    private Double latitud;
+    private Double longitud;
+    private String direccionCompleta;
+    
     private String telefono;
     private String email;
     private String sitioWeb;

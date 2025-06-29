@@ -39,6 +39,10 @@ public class ServicioTuristicoRequest {
     
     private String ubicacion;
     
+    // NUEVOS CAMPOS DE UBICACIÓN
+    private Double latitud;
+    private Double longitud;
+    
     private String requisitos;
     
     private String incluye;

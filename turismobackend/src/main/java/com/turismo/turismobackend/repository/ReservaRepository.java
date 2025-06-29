@@ -48,4 +48,7 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     
     @Query("SELECT r FROM Reserva r WHERE r.usuario.id = :usuarioId ORDER BY r.fechaReserva DESC")
     List<Reserva> findByUsuarioIdOrderByFechaReservaDesc(@Param("usuarioId") Long usuarioId);
+
+    @Query("SELECT COUNT(r) FROM Reserva r WHERE r.usuario.id = :usuarioId AND r.estado = 'COMPLETADA'")
+    Long countReservasCompletadasByUsuario(@Param("usuarioId") Long usuarioId);
 }
