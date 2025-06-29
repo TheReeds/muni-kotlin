@@ -482,6 +482,9 @@ class EmprendedorRepository(
                             nombreEmpresa = emprendedor.nombreEmpresa,
                             rubro = emprendedor.rubro,
                             direccion = emprendedor.direccion,
+                            latitud = emprendedor.latitud,
+                            longitud = emprendedor.longitud,
+                            direccionCompleta = emprendedor.direccionCompleta,
                             telefono = emprendedor.telefono,
                             email = emprendedor.email,
                             sitioWeb = emprendedor.sitioWeb,
@@ -490,6 +493,7 @@ class EmprendedorRepository(
                             servicios = emprendedor.servicios,
                             usuarioId = emprendedor.usuarioId,
                             municipalidadId = request.municipalidadId,  // Usamos el ID del request
+                            categoriaId = emprendedor.categoria?.id,
                             timestampUltimaActualizacion = System.currentTimeMillis()
                         )
                         emprendedorDao.insertEmprendedor(entity)
@@ -554,6 +558,9 @@ class EmprendedorRepository(
                             nombreEmpresa = emprendedor.nombreEmpresa,
                             rubro = emprendedor.rubro,
                             direccion = emprendedor.direccion,
+                            latitud = emprendedor.latitud,
+                            longitud = emprendedor.longitud,
+                            direccionCompleta = emprendedor.direccionCompleta,
                             telefono = emprendedor.telefono,
                             email = emprendedor.email,
                             sitioWeb = emprendedor.sitioWeb,
@@ -562,6 +569,7 @@ class EmprendedorRepository(
                             servicios = emprendedor.servicios,
                             usuarioId = emprendedor.usuarioId,
                             municipalidadId = request.municipalidadId,  // Usamos el ID del request
+                            categoriaId = emprendedor.categoria?.id,
                             timestampUltimaActualizacion = System.currentTimeMillis()
                         )
                         emprendedorDao.updateEmprendedor(entity)
@@ -622,22 +630,91 @@ class EmprendedorRepository(
     fun getEmprendedoresByCategoria(categoriaId: Long): Flow<Result<List<Emprendedor>>> = flow {
         emit(Result.Loading)
 
+        // Primero emitimos datos de la base de datos local
+        val localData = emprendedorDao.getEmprendedoresByCategoria(categoriaId).first()
+        if (localData.isNotEmpty()) {
+            Log.d(TAG, "Emitiendo ${localData.size} emprendedores para categoría $categoriaId desde la base de datos local")
+
+            // Convertimos a modelos incluyendo las municipalidades asociadas
+            val emprendedores = localData.map { entity ->
+                // Para cada emprendedor, buscamos su municipalidad básica
+                val municipalidadEntity = municipalidadDao.getMunicipalidadById(entity.municipalidadId).firstOrNull()
+                val municipalidadBasic = municipalidadEntity?.let {
+                    MunicipalidadBasic(it.id, it.nombre, it.distrito)
+                }
+                entity.toModel(municipalidadBasic)
+            }
+
+            emit(Result.Success(emprendedores))
+        }
+
+        // Luego intentamos obtener datos del servidor
         try {
             val response = apiService.getEmprendedoresByCategoria(categoriaId)
             if (response.isSuccessful) {
                 response.body()?.let { emprendedores ->
                     Log.d(TAG, "Obtenidos ${emprendedores.size} emprendedores para categoría $categoriaId del servidor")
+
+                    // Guardamos en la base de datos local
+                    withContext(Dispatchers.IO) {
+                        // Primero guardamos las municipalidades básicas
+                        val municipalidades = emprendedores
+                            .mapNotNull { it.municipalidad }
+                            .distinctBy { it.id }
+                            .map {
+                                MunicipalidadEntity(
+                                    id = it.id,
+                                    nombre = it.nombre,
+                                    departamento = "",  // Podría completarse luego
+                                    provincia = "",     // Podría completarse luego
+                                    distrito = it.distrito,
+                                    direccion = null,
+                                    telefono = null,
+                                    sitioWeb = null,
+                                    descripcion = null,
+                                    usuarioId = 0       // No tenemos esta info
+                                )
+                            }
+                        if (municipalidades.isNotEmpty()) {
+                            municipalidadDao.insertMunicipalidades(municipalidades)
+                        }
+
+                        // Después guardamos los emprendedores
+                        val entities = emprendedores.map { EmprendedorEntity.fromModel(it) }
+                        emprendedorDao.insertEmprendedores(entities)
+
+                        // Por último guardamos las relaciones
+                        val relations = emprendedores.filter { it.municipalidad != null }
+                            .map {
+                                EmprendedorMunicipalidadRef(
+                                    emprendedorId = it.id,
+                                    municipalidadId = it.municipalidad!!.id
+                                )
+                            }
+                        emprendedorMunicipalidadDao.insertAll(relations)
+                    }
+
                     emit(Result.Success(emprendedores))
-                } ?: emit(Result.Error("Respuesta vacía del servidor"))
+                } ?: run {
+                    if (localData.isEmpty()) {
+                        emit(Result.Error("Respuesta vacía del servidor"))
+                    }
+                }
             } else {
-                emit(Result.Error("Error: ${response.code()}"))
+                if (localData.isEmpty()) {
+                    emit(Result.Error("Error: ${response.code()}"))
+                }
                 Log.e(TAG, "Error al obtener datos del servidor: ${response.code()}")
             }
         } catch (e: IOException) {
-            emit(Result.Error("Error de conexión: ${e.message}"))
+            if (localData.isEmpty()) {
+                emit(Result.Error("Error de conexión: ${e.message}"))
+            }
             Log.e(TAG, "Error de conexión", e)
         } catch (e: Exception) {
-            emit(Result.Error("Error en la solicitud: ${e.message}"))
+            if (localData.isEmpty()) {
+                emit(Result.Error("Error en la solicitud: ${e.message}"))
+            }
             Log.e(TAG, "Error inesperado", e)
         }
     }.flowOn(Dispatchers.IO)

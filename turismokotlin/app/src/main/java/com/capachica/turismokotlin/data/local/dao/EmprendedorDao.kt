@@ -18,6 +18,9 @@ interface EmprendedorDao {
     @Query("SELECT * FROM emprendedores WHERE rubro = :rubro")
     fun getEmprendedoresByRubro(rubro: String): Flow<List<EmprendedorEntity>>
 
+    @Query("SELECT * FROM emprendedores WHERE categoriaId = :categoriaId")
+    fun getEmprendedoresByCategoria(categoriaId: Long): Flow<List<EmprendedorEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEmprendedor(emprendedor: EmprendedorEntity)
 

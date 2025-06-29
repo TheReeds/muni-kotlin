@@ -15,6 +15,10 @@ import com.capachica.turismokotlin.data.repository.PlanTuristicoRepository
 import com.capachica.turismokotlin.data.repository.ReservaRepository
 import com.capachica.turismokotlin.data.repository.PagoRepository
 import com.capachica.turismokotlin.data.repository.UserRepository
+import com.capachica.turismokotlin.data.repository.CarritoRepository
+import com.capachica.turismokotlin.data.repository.ReservaCarritoRepository
+import com.capachica.turismokotlin.data.repository.UbicacionRepository
+import com.capachica.turismokotlin.data.repository.ChatRepository
 
 class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
 
@@ -74,6 +78,18 @@ class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory
             modelClass.isAssignableFrom(UserViewModel::class.java) -> {
                 val repository = UserRepository(apiService)
                 UserViewModel(repository) as T
+            }
+            modelClass.isAssignableFrom(CarritoViewModel::class.java) -> {
+                val repository = CarritoRepository(apiService)
+                CarritoViewModel(repository) as T
+            }
+            modelClass.isAssignableFrom(UbicacionViewModel::class.java) -> {
+                val repository = UbicacionRepository(apiService)
+                UbicacionViewModel(repository) as T
+            }
+            modelClass.isAssignableFrom(ChatViewModel::class.java) -> {
+                val repository = ChatRepository(apiService)
+                ChatViewModel(repository) as T
             }
             else -> throw IllegalArgumentException("ViewModel no encontrado")
         }

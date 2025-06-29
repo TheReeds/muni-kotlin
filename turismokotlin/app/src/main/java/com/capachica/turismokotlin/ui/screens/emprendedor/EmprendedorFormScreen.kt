@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.capachica.turismokotlin.data.model.EmprendedorRequest
@@ -18,6 +19,10 @@ import com.capachica.turismokotlin.data.repository.Result
 import com.capachica.turismokotlin.ui.components.LoadingScreen
 import com.capachica.turismokotlin.ui.components.TurismoAppBar
 import com.capachica.turismokotlin.ui.components.TurismoTextField
+import com.capachica.turismokotlin.ui.components.LocationPicker as DialogLocationPicker
+import com.capachica.turismokotlin.ui.components.MapLocationPicker
+import com.capachica.turismokotlin.ui.components.GeolocationHelper
+import com.capachica.turismokotlin.ui.viewmodel.AuthViewModel
 import com.capachica.turismokotlin.ui.viewmodel.CategoriaViewModel
 import com.capachica.turismokotlin.ui.viewmodel.EmprendedorViewModel
 import com.capachica.turismokotlin.ui.viewmodel.MunicipalidadViewModel
@@ -35,14 +40,24 @@ fun EmprendedorFormScreen(
 ) {
     val emprendedorViewModel: EmprendedorViewModel = viewModel(factory = factory)
     val municipalidadViewModel: MunicipalidadViewModel = viewModel(factory = factory)
+    val authViewModel: AuthViewModel = viewModel(factory = factory)
 
     val emprendedorState by emprendedorViewModel.emprendedorState.collectAsState()
     val createUpdateState by emprendedorViewModel.createUpdateState.collectAsState()
     val deleteState by emprendedorViewModel.deleteState.collectAsState()
     val municipalidadesState by municipalidadViewModel.municipalidadesState.collectAsState()
+    val userRoles by authViewModel.userRoles.collectAsState()
 
     val isEditing = emprendedorId > 0
     val scope = rememberCoroutineScope()
+    
+    // Control de acceso basado en roles
+    val isAdmin = userRoles.contains("ROLE_ADMIN")
+    val isMunicipalidad = userRoles.contains("ROLE_MUNICIPALIDAD")
+    val isEmprendedor = userRoles.contains("ROLE_EMPRENDEDOR")
+    
+    // Un usuario puede editar si es admin, municipalidad, o es el propietario del emprendimiento
+    val canEdit = isAdmin || isMunicipalidad || (isEmprendedor && !isEditing) // Solo crear si es emprendedor
 
     // Para manejar la visibilidad del formulario
     var formReady by remember { mutableStateOf(!isEditing) }
@@ -52,6 +67,10 @@ fun EmprendedorFormScreen(
     var nombreEmpresa by remember { mutableStateOf("") }
     var rubro by remember { mutableStateOf("") }
     var direccion by remember { mutableStateOf("") }
+    var latitud by remember { mutableStateOf<Double?>(null) }
+    var longitud by remember { mutableStateOf<Double?>(null) }
+    var direccionCompleta by remember { mutableStateOf("") }
+    var showLocationDialog by remember { mutableStateOf(false) }
     var telefono by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var sitioWeb by remember { mutableStateOf("") }
@@ -110,6 +129,9 @@ fun EmprendedorFormScreen(
             nombreEmpresa = emprendedor.nombreEmpresa
             rubro = emprendedor.rubro
             direccion = emprendedor.direccion ?: ""
+            latitud = emprendedor.latitud
+            longitud = emprendedor.longitud
+            direccionCompleta = emprendedor.direccionCompleta ?: ""
             telefono = emprendedor.telefono ?: ""
             email = emprendedor.email ?: ""
             sitioWeb = emprendedor.sitioWeb ?: ""
@@ -188,6 +210,38 @@ fun EmprendedorFormScreen(
             createUpdateState is Result.Loading ||
             deleteState is Result.Loading) {
             LoadingScreen()
+        } else if (!canEdit) {
+            // Mostrar mensaje de acceso denegado
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Security,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                    Text(
+                        text = "Acceso denegado",
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                    Text(
+                        text = "No tienes permisos para ${if (isEditing) "editar" else "crear"} emprendimientos",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Button(onClick = onBack) {
+                        Text("Volver")
+                    }
+                }
+            }
         } else {
             Column(
                 modifier = Modifier
@@ -279,6 +333,69 @@ fun EmprendedorFormScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // Selección de categoría
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "Categoría *",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+
+                    ExposedDropdownMenuBox(
+                        expanded = showCategoriasDropdown,
+                        onExpandedChange = { showCategoriasDropdown = it }
+                    ) {
+                        OutlinedTextField(
+                            value = if (selectedCategoriaId != null) {
+                                when (categoriasState) {
+                                    is Result.Success -> (categoriasState as Result.Success).data
+                                        .find { it.id == selectedCategoriaId }?.nombre ?: ""
+                                    else -> ""
+                                }
+                            } else "",
+                            onValueChange = {},
+                            readOnly = true,
+                            placeholder = { Text("Seleccionar categoría") },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = showCategoriasDropdown)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor()
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = showCategoriasDropdown,
+                            onDismissRequest = { showCategoriasDropdown = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Sin categoría") },
+                                onClick = {
+                                    selectedCategoriaId = null
+                                    showCategoriasDropdown = false
+                                }
+                            )
+                            
+                            when (categoriasState) {
+                                is Result.Success -> {
+                                    (categoriasState as Result.Success).data.forEach { categoria ->
+                                        DropdownMenuItem(
+                                            text = { Text(categoria.nombre) },
+                                            onClick = {
+                                                selectedCategoriaId = categoria.id
+                                                showCategoriasDropdown = false
+                                            }
+                                        )
+                                    }
+                                }
+                                else -> {}
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
                 TurismoTextField(
                     value = direccion,
                     onValueChange = { direccion = it },
@@ -351,6 +468,40 @@ fun EmprendedorFormScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Selector de ubicación mejorado
+                LocationSelectionCard(
+                    latitud = latitud,
+                    longitud = longitud,
+                    direccionCompleta = direccionCompleta,
+                    onOpenLocationPicker = { showLocationDialog = true },
+                    onClearLocation = {
+                        latitud = null
+                        longitud = null
+                        direccionCompleta = ""
+                    },
+                    factory = factory
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Diálogo de selección de ubicación
+                if (showLocationDialog) {
+                    DialogLocationPicker(
+                        currentLocation = if (latitud != null && longitud != null) Pair(latitud!!, longitud!!) else null,
+                        onLocationSelected = { lat, lng, name ->
+                            latitud = lat
+                            longitud = lng
+                            direccionCompleta = name
+                            showLocationDialog = false
+                        },
+                        onDismiss = { showLocationDialog = false },
+                        onUseCurrentLocation = {
+                            // Implementar geolocalización aquí si es necesario
+                            // O usar el GeolocationHelper
+                        }
+                    )
+                }
+
                 // Mostrar mensajes de error
                 if (createUpdateState is Result.Error) {
                     Text(
@@ -385,13 +536,17 @@ fun EmprendedorFormScreen(
                                 nombreEmpresa = nombreEmpresa,
                                 rubro = rubro,
                                 direccion = direccion.ifBlank { null },
+                                latitud = latitud,
+                                longitud = longitud,
+                                direccionCompleta = direccionCompleta.ifBlank { null },
                                 telefono = telefono.ifBlank { null },
                                 email = email.ifBlank { null },
                                 sitioWeb = sitioWeb.ifBlank { null },
                                 descripcion = descripcion.ifBlank { null },
                                 productos = productos.ifBlank { null },
                                 servicios = servicios.ifBlank { null },
-                                municipalidadId = selectedMunicipalidadId
+                                municipalidadId = selectedMunicipalidadId,
+                                categoriaId = selectedCategoriaId
                             )
 
                             scope.launch {
@@ -430,6 +585,133 @@ fun EmprendedorFormScreen(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun LocationSelectionCard(
+    latitud: Double?,
+    longitud: Double?,
+    direccionCompleta: String,
+    onOpenLocationPicker: () -> Unit,
+    onClearLocation: () -> Unit,
+    factory: ViewModelFactory
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Ubicación (opcional)",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Medium
+                )
+                
+                if (latitud != null && longitud != null) {
+                    IconButton(onClick = onClearLocation) {
+                        Icon(
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = "Limpiar ubicación",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+            
+            if (latitud != null && longitud != null) {
+                // Mostrar ubicación actual
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    if (direccionCompleta.isNotEmpty()) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = direccionCompleta,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                    
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MyLocation,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "Lat: ${String.format("%.6f", latitud)}, Lng: ${String.format("%.6f", longitud)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            } else {
+                // Mostrar mensaje cuando no hay ubicación
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOff,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "Sin ubicación definida",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            
+            // Botón para abrir selector
+            Button(
+                onClick = onOpenLocationPicker,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (latitud != null && longitud != null) 
+                        MaterialTheme.colorScheme.secondary 
+                    else 
+                        MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Icon(
+                    imageVector = if (latitud != null && longitud != null) Icons.Default.Edit else Icons.Default.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = if (latitud != null && longitud != null) "Cambiar ubicación" else "Seleccionar ubicación"
+                )
             }
         }
     }

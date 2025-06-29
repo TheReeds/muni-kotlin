@@ -152,6 +152,20 @@ class PlanTuristicoRepository @Inject constructor(
         }
     }
     
+    fun getPlanesByCategoria(categoriaId: Long): Flow<Result<List<PlanTuristico>>> = flow {
+        emit(Result.Loading)
+        try {
+            val response = apiService.getPlanesByCategoria(categoriaId)
+            if (response.isSuccessful) {
+                emit(Result.Success(response.body() ?: emptyList()))
+            } else {
+                emit(Result.Error("Error al obtener planes por categoría: ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            emit(Result.Error("Error de red: ${e.message}"))
+        }
+    }
+    
     fun createPlan(request: PlanTuristicoRequest): Flow<Result<PlanTuristico>> = flow {
         emit(Result.Loading)
         try {

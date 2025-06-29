@@ -6,6 +6,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.capachica.turismokotlin.data.model.Emprendedor
 import com.capachica.turismokotlin.data.model.MunicipalidadBasic
+import com.capachica.turismokotlin.data.model.CategoriaBasic
 
 @Entity(
     tableName = "emprendedores",
@@ -17,13 +18,16 @@ import com.capachica.turismokotlin.data.model.MunicipalidadBasic
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index("municipalidadId")] // Agregamos índice para mejor rendimiento
+    indices = [Index("municipalidadId"), Index("categoriaId")] // Agregamos índice para mejor rendimiento
 )
 data class EmprendedorEntity(
     @PrimaryKey val id: Long,
     val nombreEmpresa: String,
     val rubro: String,
     val direccion: String?,
+    val latitud: Double?,
+    val longitud: Double?,
+    val direccionCompleta: String?,
     val telefono: String?,
     val email: String?,
     val sitioWeb: String?,
@@ -32,14 +36,18 @@ data class EmprendedorEntity(
     val servicios: String?,
     val usuarioId: Long,
     val municipalidadId: Long,
+    val categoriaId: Long?,
     val timestampUltimaActualizacion: Long = System.currentTimeMillis()
 ) {
-    fun toModel(municipalidad: MunicipalidadBasic? = null): Emprendedor {
+    fun toModel(municipalidad: MunicipalidadBasic? = null, categoria: CategoriaBasic? = null): Emprendedor {
         return Emprendedor(
             id = id,
             nombreEmpresa = nombreEmpresa,
             rubro = rubro,
             direccion = direccion,
+            latitud = latitud,
+            longitud = longitud,
+            direccionCompleta = direccionCompleta,
             telefono = telefono,
             email = email,
             sitioWeb = sitioWeb,
@@ -47,7 +55,8 @@ data class EmprendedorEntity(
             productos = productos,
             servicios = servicios,
             usuarioId = usuarioId,
-            municipalidad = municipalidad
+            municipalidad = municipalidad,
+            categoria = categoria
         )
     }
 
@@ -58,6 +67,9 @@ data class EmprendedorEntity(
                 nombreEmpresa = model.nombreEmpresa,
                 rubro = model.rubro,
                 direccion = model.direccion,
+                latitud = model.latitud,
+                longitud = model.longitud,
+                direccionCompleta = model.direccionCompleta,
                 telefono = model.telefono,
                 email = model.email,
                 sitioWeb = model.sitioWeb,
@@ -65,7 +77,8 @@ data class EmprendedorEntity(
                 productos = model.productos,
                 servicios = model.servicios,
                 usuarioId = model.usuarioId,
-                municipalidadId = model.municipalidad?.id ?: 0
+                municipalidadId = model.municipalidad?.id ?: 0,
+                categoriaId = model.categoria?.id
             )
         }
     }

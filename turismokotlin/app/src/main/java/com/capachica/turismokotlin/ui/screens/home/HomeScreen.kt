@@ -32,7 +32,10 @@ fun HomeScreen(
     onNavigateToPlanes: () -> Unit,
     onNavigateToMisPlanes: (() -> Unit)?,
     onNavigateToMisReservas: () -> Unit,
+    onNavigateToReservasCarrito: () -> Unit,
     onNavigateToServicios: () -> Unit,
+    onNavigateToCarrito: () -> Unit,
+    onNavigateToChat: () -> Unit,
     onNavigateToAdmin: (() -> Unit)?,
     onLogout: () -> Unit,
     factory: ViewModelFactory
@@ -40,12 +43,18 @@ fun HomeScreen(
     val authViewModel: AuthViewModel = viewModel(factory = factory)
     val planViewModel: PlanTuristicoViewModel = viewModel(factory = factory)
     val servicioViewModel: ServicioTuristicoViewModel = viewModel(factory = factory)
+    val carritoViewModel: CarritoViewModel = viewModel(factory = factory)
     
     val scope = rememberCoroutineScope()
     var selectedTab by remember { mutableIntStateOf(0) }
     
     val planesState by planViewModel.planesState.collectAsState()
     val serviciosState by servicioViewModel.serviciosState.collectAsState()
+    val userRoles by authViewModel.userRoles.collectAsState()
+    val contarState by carritoViewModel.contarState.collectAsState()
+    
+    // Verificar si es administrador
+    val isAdmin = userRoles.contains("ROLE_ADMIN")
     
     // Cargar datos al inicio
     LaunchedEffect(Unit) {
@@ -67,8 +76,34 @@ fun HomeScreen(
                     }
                 },
                 actions = {
-                    // Botón de administración si está disponible
-                    if (onNavigateToAdmin != null) {
+                    // Botón del carrito con badge
+                    BadgedBox(
+                        badge = {
+                            if (contarState is Result.Success && (contarState as Result.Success<CarritoContarResponse>).data.cantidadItems > 0) {
+                                Badge {
+                                    Text((contarState as Result.Success<CarritoContarResponse>).data.cantidadItems.toString())
+                                }
+                            }
+                        }
+                    ) {
+                        IconButton(onClick = onNavigateToCarrito) {
+                            Icon(
+                                imageVector = Icons.Default.ShoppingCart,
+                                contentDescription = "Carrito"
+                            )
+                        }
+                    }
+                    
+                    // Botón de chat
+                    IconButton(onClick = onNavigateToChat) {
+                        Icon(
+                            imageVector = Icons.Default.Chat,
+                            contentDescription = "Chat"
+                        )
+                    }
+                    
+                    // Botón de administración solo para admins
+                    if (isAdmin && onNavigateToAdmin != null) {
                         IconButton(onClick = onNavigateToAdmin) {
                             Icon(
                                 imageVector = Icons.Default.AdminPanelSettings,
@@ -109,7 +144,7 @@ fun HomeScreen(
                     icon = { Icon(Icons.Default.BookOnline, contentDescription = "Reservas") },
                     label = { Text("Reservas") },
                     selected = selectedTab == 2,
-                    onClick = { onNavigateToMisReservas() }
+                    onClick = { selectedTab = 2 }
                 )
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Explore, contentDescription = "Explorar") },
@@ -132,21 +167,16 @@ fun HomeScreen(
                 onServicioClick = { servicio -> onNavigateToServicios() },
                 modifier = Modifier.padding(paddingValues)
             )
-            2 -> {
-                // Placeholder - se redirige con el botón
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Cargando reservas...")
-                }
-            }
+            2 -> ReservasTabContent(
+                onNavigateToMisReservas = onNavigateToMisReservas,
+                onNavigateToReservasCarrito = onNavigateToReservasCarrito,
+                modifier = Modifier.padding(paddingValues)
+            )
             3 -> ExplorarTabContent(
                 onNavigateToMunicipalidades = onNavigateToMunicipalidades,
                 onNavigateToEmprendedores = onNavigateToEmprendedores,
                 onNavigateToCategorias = onNavigateToCategorias,
+                isAdmin = isAdmin,
                 modifier = Modifier.padding(paddingValues)
             )
         }
@@ -394,6 +424,7 @@ fun ExplorarTabContent(
     onNavigateToMunicipalidades: () -> Unit,
     onNavigateToEmprendedores: () -> Unit,
     onNavigateToCategorias: () -> Unit,
+    isAdmin: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -409,116 +440,161 @@ fun ExplorarTabContent(
             )
         }
         
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = onNavigateToMunicipalidades
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+        // Mostrar municipalidades solo para administradores
+        if (isAdmin) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = onNavigateToMunicipalidades
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.LocationCity,
-                        contentDescription = null,
-                        modifier = Modifier.size(32.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Municipalidades",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Medium
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.LocationCity,
+                            contentDescription = null,
+                            modifier = Modifier.size(32.dp),
+                            tint = MaterialTheme.colorScheme.primary
                         )
-                        Text(
-                            text = "Explora destinos por municipalidad",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Municipalidades",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = "Administrar municipalidades",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = null
                         )
                     }
-                    Icon(
-                        imageVector = Icons.Default.ChevronRight,
-                        contentDescription = null
-                    )
                 }
             }
         }
         
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = onNavigateToEmprendedores
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+        // Mostrar emprendedores solo para administradores
+        if (isAdmin) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = onNavigateToEmprendedores
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Business,
-                        contentDescription = null,
-                        modifier = Modifier.size(32.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Emprendedores",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Medium
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Business,
+                            contentDescription = null,
+                            modifier = Modifier.size(32.dp),
+                            tint = MaterialTheme.colorScheme.primary
                         )
-                        Text(
-                            text = "Conoce los negocios locales",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Emprendedores",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = "Administrar emprendedores",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = null
                         )
                     }
-                    Icon(
-                        imageVector = Icons.Default.ChevronRight,
-                        contentDescription = null
-                    )
                 }
             }
         }
         
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = onNavigateToCategorias
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+        // Mostrar categorías solo para administradores
+        if (isAdmin) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = onNavigateToCategorias
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Category,
-                        contentDescription = null,
-                        modifier = Modifier.size(32.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Categorías",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Medium
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Category,
+                            contentDescription = null,
+                            modifier = Modifier.size(32.dp),
+                            tint = MaterialTheme.colorScheme.primary
                         )
-                        Text(
-                            text = "Busca por tipo de negocio",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Categorías",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = "Administrar categorías",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = null
                         )
                     }
-                    Icon(
-                        imageVector = Icons.Default.ChevronRight,
-                        contentDescription = null
-                    )
+                }
+            }
+        }
+        
+        // Sección para usuarios no administradores
+        if (!isAdmin) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Explore,
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Explora nuestros servicios",
+                            style = MaterialTheme.typography.titleLarge,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Descubre planes turísticos y servicios disponibles en las pestañas de arriba",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
         }
@@ -710,6 +786,127 @@ fun ServicioCard(
                     text = "${servicio.duracionHoras}h",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ReservasTabContent(
+    onNavigateToMisReservas: () -> Unit,
+    onNavigateToReservasCarrito: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = "Mis Reservas",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+        
+        // Tarjeta para reservas de planes turísticos
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onNavigateToMisReservas,
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.BookOnline,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Reservas de Planes",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = "Ver mis reservas de planes turísticos",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null
+                )
+            }
+        }
+        
+        // Tarjeta para reservas de servicios (carrito)
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onNavigateToReservasCarrito,
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Receipt,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.secondary
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Reservas de Servicios",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = "Ver mis reservas de servicios turísticos",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Text(
+            text = "Información",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Medium
+        )
+        
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = "• Reservas de Planes: Reservas tradicionales de planes turísticos completos",
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "• Reservas de Servicios: Reservas creadas desde el carrito de servicios individuales",
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
         }

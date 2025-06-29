@@ -19,6 +19,7 @@ import com.capachica.turismokotlin.data.model.*
 import com.capachica.turismokotlin.data.repository.Result
 import com.capachica.turismokotlin.ui.components.*
 import com.capachica.turismokotlin.ui.viewmodel.ServicioTuristicoViewModel
+import com.capachica.turismokotlin.ui.viewmodel.CarritoViewModel
 import com.capachica.turismokotlin.ui.viewmodel.ViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,17 +28,21 @@ fun ServicioDetailScreen(
     servicioId: Long,
     onNavigateToEdit: () -> Unit = {},
     onNavigateToEmprendedor: (Long) -> Unit = {},
+    onNavigateToCarrito: () -> Unit = {},
     onBack: () -> Unit,
     canEdit: Boolean = false,
     factory: ViewModelFactory
 ) {
     val viewModel: ServicioTuristicoViewModel = viewModel(factory = factory)
+    val carritoViewModel: CarritoViewModel = viewModel(factory = factory)
     val servicioState by viewModel.servicioState.collectAsState()
     val deleteState by viewModel.deleteState.collectAsState()
     val cambiarEstadoState by viewModel.cambiarEstadoState.collectAsState()
+    val carritoOperationState by carritoViewModel.operationState.collectAsState()
     
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showEstadoDialog by remember { mutableStateOf(false) }
+    var showAddToCartDialog by remember { mutableStateOf(false) }
     
     LaunchedEffect(servicioId) {
         viewModel.getServicioById(servicioId)
@@ -54,6 +59,14 @@ fun ServicioDetailScreen(
     LaunchedEffect(cambiarEstadoState) {
         if (cambiarEstadoState is Result.Success) {
             viewModel.getServicioById(servicioId) // Recargar datos
+        }
+    }
+    
+    // Manejar operaciones del carrito
+    LaunchedEffect(carritoOperationState) {
+        if (carritoOperationState is Result.Success) {
+            showAddToCartDialog = false
+            carritoViewModel.clearOperationState()
         }
     }
     
@@ -100,6 +113,9 @@ fun ServicioDetailScreen(
                 ServicioDetailContent(
                     servicio = servicio,
                     onNavigateToEmprendedor = onNavigateToEmprendedor,
+                    onAddToCart = { showAddToCartDialog = true },
+                    onNavigateToCarrito = onNavigateToCarrito,
+                    canEdit = canEdit,
                     modifier = Modifier.padding(paddingValues)
                 )
             }
@@ -142,6 +158,19 @@ fun ServicioDetailScreen(
                     onDismiss = { showEstadoDialog = false }
                 )
             }
+            
+            // Diálogo para agregar al carrito
+            if (showAddToCartDialog) {
+                AddToCartDialog(
+                    servicio = servicio,
+                    onAddToCart = { cantidad, fechaServicio, notas ->
+                        carritoViewModel.agregarItem(servicioId, cantidad, fechaServicio, notas)
+                    },
+                    onDismiss = { showAddToCartDialog = false },
+                    isLoading = carritoOperationState is Result.Loading,
+                    error = (carritoOperationState as? Result.Error)?.message
+                )
+            }
         }
     }
 }
@@ -150,6 +179,9 @@ fun ServicioDetailScreen(
 fun ServicioDetailContent(
     servicio: ServicioTuristico,
     onNavigateToEmprendedor: (Long) -> Unit,
+    onAddToCart: () -> Unit = {},
+    onNavigateToCarrito: () -> Unit = {},
+    canEdit: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -192,6 +224,15 @@ fun ServicioDetailContent(
         // Información adicional
         if (!servicio.incluye.isNullOrEmpty() || !servicio.noIncluye.isNullOrEmpty() || !servicio.requisitos.isNullOrEmpty()) {
             ServicioAdditionalInfo(servicio = servicio)
+        }
+        
+        // Botones de acción del carrito (solo si no es editor)
+        if (!canEdit && servicio.estado == EstadoServicio.ACTIVO) {
+            CartActionButtons(
+                servicio = servicio,
+                onAddToCart = onAddToCart,
+                onNavigateToCarrito = onNavigateToCarrito
+            )
         }
         
         Spacer(modifier = Modifier.height(16.dp))
@@ -617,6 +658,316 @@ fun EstadoDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
+}
+
+@Composable
+fun CartActionButtons(
+    servicio: ServicioTuristico,
+    onAddToCart: () -> Unit,
+    onNavigateToCarrito: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = "🛒 Reservar Servicio",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Precio destacado
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "$${servicio.precio}",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "por persona",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    if (servicio.capacidadMaxima > 0) {
+                        Text(
+                            text = "Máximo ${servicio.capacidadMaxima} personas",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+                
+                // Botones de acción
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = onAddToCart,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ShoppingCart,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Agregar al Carrito")
+                    }
+                    
+                    OutlinedButton(
+                        onClick = onNavigateToCarrito,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ShoppingBag,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Ver Carrito")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AddToCartDialog(
+    servicio: ServicioTuristico,
+    onAddToCart: (Int, String, String?) -> Unit,
+    onDismiss: () -> Unit,
+    isLoading: Boolean = false,
+    error: String? = null
+) {
+    var cantidad by remember { mutableStateOf(1) }
+    var fechaServicio by remember { mutableStateOf("") }
+    var notasEspeciales by remember { mutableStateOf("") }
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ShoppingCart,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Text("Agregar al Carrito")
+            }
+        },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Información del servicio
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+                        Text(
+                            text = servicio.nombre,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = "$${servicio.precio} por persona",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        if (servicio.capacidadMaxima > 0) {
+                            Text(
+                                text = "Capacidad máxima: ${servicio.capacidadMaxima}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+                
+                // Cantidad
+                Column {
+                    Text(
+                        text = "Cantidad de personas",
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        IconButton(
+                            onClick = { if (cantidad > 1) cantidad-- },
+                            enabled = cantidad > 1
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Remove,
+                                contentDescription = "Disminuir"
+                            )
+                        }
+                        Text(
+                            text = cantidad.toString(),
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                        IconButton(
+                            onClick = { 
+                                if (servicio.capacidadMaxima <= 0 || cantidad < servicio.capacidadMaxima) {
+                                    cantidad++
+                                }
+                            },
+                            enabled = servicio.capacidadMaxima <= 0 || cantidad < servicio.capacidadMaxima
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Aumentar"
+                            )
+                        }
+                    }
+                }
+                
+                // Fecha del servicio
+                OutlinedTextField(
+                    value = fechaServicio,
+                    onValueChange = { fechaServicio = it },
+                    label = { Text("Fecha deseada (YYYY-MM-DD)") },
+                    placeholder = { Text("2024-12-25") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = null
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                
+                // Notas especiales
+                OutlinedTextField(
+                    value = notasEspeciales,
+                    onValueChange = { notasEspeciales = it },
+                    label = { Text("Notas especiales (opcional)") },
+                    placeholder = { Text("Requisitos dietarios, alergias, etc.") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Note,
+                            contentDescription = null
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 3
+                )
+                
+                // Total
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Total:",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = "$${servicio.precio * cantidad}",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+                
+                // Mostrar error si existe
+                error?.let { errorMessage ->
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Error,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                            Text(
+                                text = errorMessage,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (fechaServicio.isNotEmpty()) {
+                        onAddToCart(
+                            cantidad,
+                            fechaServicio,
+                            if (notasEspeciales.isNotEmpty()) notasEspeciales else null
+                        )
+                    }
+                },
+                enabled = !isLoading && fechaServicio.isNotEmpty()
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.ShoppingCart,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Agregar")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                enabled = !isLoading
+            ) {
                 Text("Cancelar")
             }
         }

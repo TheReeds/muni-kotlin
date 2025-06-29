@@ -21,17 +21,22 @@ import com.capachica.turismokotlin.data.model.*
 import com.capachica.turismokotlin.data.repository.Result
 import com.capachica.turismokotlin.ui.components.*
 import com.capachica.turismokotlin.ui.viewmodel.ServicioTuristicoViewModel
+import com.capachica.turismokotlin.ui.viewmodel.CarritoViewModel
 import com.capachica.turismokotlin.ui.viewmodel.ViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ServicioStoreScreen(
     onNavigateToDetail: (Long) -> Unit,
+    onNavigateToCarrito: () -> Unit = {},
     onBack: () -> Unit,
     factory: ViewModelFactory
 ) {
     val viewModel: ServicioTuristicoViewModel = viewModel(factory = factory)
+    val carritoViewModel: CarritoViewModel = viewModel(factory = factory)
     val serviciosState by viewModel.serviciosState.collectAsState()
+    val carritoContarState by carritoViewModel.contarState.collectAsState()
+    val carritoOperationState by carritoViewModel.operationState.collectAsState()
     
     // Filtros
     var selectedTipo by remember { mutableStateOf<TipoServicio?>(null) }
@@ -39,6 +44,8 @@ fun ServicioStoreScreen(
     var searchQuery by remember { mutableStateOf("") }
     var showFilters by remember { mutableStateOf(false) }
     var sortBy by remember { mutableStateOf("nombre") }
+    var showAddToCartDialog by remember { mutableStateOf(false) }
+    var selectedServicioForCart by remember { mutableStateOf<ServicioTuristico?>(null) }
     
     // Cargar datos al inicio
     LaunchedEffect(Unit, selectedTipo, selectedMunicipalidad, searchQuery) {
@@ -62,12 +69,39 @@ fun ServicioStoreScreen(
         }
     }
     
+    // Manejar operaciones del carrito
+    LaunchedEffect(carritoOperationState) {
+        if (carritoOperationState is Result.Success) {
+            showAddToCartDialog = false
+            selectedServicioForCart = null
+            carritoViewModel.clearOperationState()
+        }
+    }
+    
     Scaffold(
         topBar = {
             TurismoAppBar(
                 title = "Tienda de Servicios",
                 onBackClick = onBack,
                 actions = {
+                    // Carrito con badge de cantidad
+                    IconButton(onClick = onNavigateToCarrito) {
+                        BadgedBox(
+                            badge = {
+                                if (carritoContarState is Result.Success && (carritoContarState as Result.Success<CarritoContarResponse>).data.cantidadItems > 0) {
+                                    Badge {
+                                        Text((carritoContarState as Result.Success<CarritoContarResponse>).data.cantidadItems.toString())
+                                    }
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ShoppingCart,
+                                contentDescription = "Carrito"
+                            )
+                        }
+                    }
+                    
                     IconButton(onClick = { showFilters = !showFilters }) {
                         Icon(
                             imageVector = Icons.Default.FilterList,
@@ -155,7 +189,12 @@ fun ServicioStoreScreen(
                             items(sortedServicios) { servicio ->
                                 ServicioStoreCard(
                                     servicio = servicio,
-                                    onClick = { onNavigateToDetail(servicio.id) }
+                                    onClick = { onNavigateToDetail(servicio.id) },
+                                    onAddToCart = {
+                                        selectedServicioForCart = servicio
+                                        showAddToCartDialog = true
+                                    },
+                                    onNavigateToCarrito = onNavigateToCarrito
                                 )
                             }
                         }
@@ -163,6 +202,22 @@ fun ServicioStoreScreen(
                 }
             }
         }
+    }
+    
+    // Diálogo para agregar al carrito
+    if (showAddToCartDialog && selectedServicioForCart != null) {
+        AddToCartDialog(
+            servicio = selectedServicioForCart!!,
+            onAddToCart = { cantidad, fechaServicio, notas ->
+                carritoViewModel.agregarItem(selectedServicioForCart!!.id, cantidad, fechaServicio, notas)
+            },
+            onDismiss = { 
+                showAddToCartDialog = false
+                selectedServicioForCart = null
+            },
+            isLoading = carritoOperationState is Result.Loading,
+            error = (carritoOperationState as? Result.Error)?.message
+        )
     }
 }
 
@@ -393,7 +448,9 @@ fun FeaturedServiceCard(
 @Composable
 fun ServicioStoreCard(
     servicio: ServicioTuristico,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onAddToCart: () -> Unit = {},
+    onNavigateToCarrito: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier
@@ -515,6 +572,41 @@ fun ServicioStoreCard(
                                 )
                             }
                         )
+                    }
+                }
+                
+                // Botones de acción del carrito (solo si está activo)
+                if (servicio.estado == EstadoServicio.ACTIVO) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = onAddToCart,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ShoppingCart,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Agregar", style = MaterialTheme.typography.labelMedium)
+                        }
+                        
+                        OutlinedButton(
+                            onClick = onClick,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Visibility,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Ver Detalles", style = MaterialTheme.typography.labelMedium)
+                        }
                     }
                 }
             }

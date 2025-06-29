@@ -68,6 +68,15 @@ class EmprendedorViewModel(private val repository: EmprendedorRepository) : View
         }
     }
 
+    fun getEmprendedoresByCategoria(categoriaId: Long) {
+        _emprendedoresState.value = Result.Loading
+        viewModelScope.launch {
+            repository.getEmprendedoresByCategoria(categoriaId).collect {
+                _emprendedoresState.value = it
+            }
+        }
+    }
+
     fun getMiEmprendedor() {
         _emprendedorState.value = Result.Loading
         viewModelScope.launch {

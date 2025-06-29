@@ -111,6 +111,20 @@ class ServicioTuristicoRepository @Inject constructor(
         }
     }
     
+    fun getServiciosByCategoria(categoriaId: Long): Flow<Result<List<ServicioTuristico>>> = flow {
+        emit(Result.Loading)
+        try {
+            val response = apiService.getServiciosByCategoria(categoriaId)
+            if (response.isSuccessful) {
+                emit(Result.Success(response.body() ?: emptyList()))
+            } else {
+                emit(Result.Error("Error al obtener servicios por categoría: ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            emit(Result.Error("Error de red: ${e.message}"))
+        }
+    }
+    
     fun getMisServicios(): Flow<Result<List<ServicioTuristico>>> = flow {
         emit(Result.Loading)
         try {

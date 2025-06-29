@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -19,6 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.capachica.turismokotlin.data.model.ConversacionResponse
 import com.capachica.turismokotlin.ui.screens.auth.LoginScreen
 import com.capachica.turismokotlin.ui.screens.auth.RegisterScreen
 import com.capachica.turismokotlin.ui.screens.categorias.CategoriaDetailScreen
@@ -50,6 +52,13 @@ import com.capachica.turismokotlin.ui.screens.servicios.ServicioDetailScreen
 import com.capachica.turismokotlin.ui.screens.servicios.ServicioFormScreen
 import com.capachica.turismokotlin.ui.screens.servicios.MisServiciosScreen
 import com.capachica.turismokotlin.ui.screens.pagos.PagosScreen
+import com.capachica.turismokotlin.ui.screens.carrito.CarritoScreen
+import com.capachica.turismokotlin.ui.screens.carrito.CheckoutScreen
+import com.capachica.turismokotlin.ui.screens.reservas.ReservasCarritoScreen
+import com.capachica.turismokotlin.ui.screens.reservas.ReservaCarritoDetailScreen
+import com.capachica.turismokotlin.ui.screens.mapa.MapaEmprendedoresScreen
+import com.capachica.turismokotlin.ui.screen.chat.ChatConversacionesScreen
+import com.capachica.turismokotlin.ui.screen.chat.ChatDetailScreen
 import com.capachica.turismokotlin.ui.theme.TurismoKotlinTheme
 import com.capachica.turismokotlin.ui.viewmodel.ViewModelFactory
 
@@ -84,7 +93,7 @@ object Routes {
     const val EMPRENDEDORES = "emprendedores"
     const val EMPRENDEDORES_BY_MUNICIPALIDAD = "emprendedores_by_municipalidad/{municipalidadId}"
     const val EMPRENDEDOR_DETAIL = "emprendedor_detail/{id}"
-    const val EMPRENDEDOR_FORM = "emprendedor_form/{id}"
+    const val EMPRENDEDOR_FORM = "emprendedor_form/{id}?preselectedMunicipalidadId={preselectedMunicipalidadId}"
     const val CATEGORIAS = "categorias"
     const val CATEGORIA_DETAIL = "categoria_detail/{id}"
     const val CATEGORIA_FORM = "categoria_form/{id}"
@@ -114,6 +123,18 @@ object Routes {
     const val SERVICIO_FORM = "servicio_form/{id}"
     const val MIS_SERVICIOS = "mis_servicios"
     const val PAGOS = "pagos"
+    
+    // Nuevas rutas para carrito y ubicación
+    const val CARRITO = "carrito"
+    const val CHECKOUT = "checkout"
+    const val RESERVAS_CARRITO = "reservas_carrito"
+    const val RESERVA_CARRITO_DETAIL = "reserva_carrito_detail/{id}"
+    const val MAPA_UBICACION = "mapa_ubicacion"
+    const val SELECCIONAR_UBICACION = "seleccionar_ubicacion"
+    
+    // Rutas de chat
+    const val CHAT_CONVERSACIONES = "chat_conversaciones"
+    const val CHAT_DETAIL = "chat_detail/{conversacionId}"
 }
 
 @Composable
@@ -174,8 +195,17 @@ fun TurismoApp(factory: ViewModelFactory) {
                 onNavigateToMisReservas = {
                     navController.navigate(Routes.MIS_RESERVAS)
                 },
+                onNavigateToReservasCarrito = {
+                    navController.navigate(Routes.RESERVAS_CARRITO)
+                },
                 onNavigateToServicios = {
                     navController.navigate(Routes.SERVICIOS_STORE)
+                },
+                onNavigateToCarrito = {
+                    navController.navigate(Routes.CARRITO)
+                },
+                onNavigateToChat = {
+                    navController.navigate(Routes.CHAT_CONVERSACIONES)
                 },
                 onNavigateToAdmin = {
                     navController.navigate(Routes.ADMIN_DASHBOARD)
@@ -257,8 +287,14 @@ fun TurismoApp(factory: ViewModelFactory) {
                 },
                 onNavigateToCreate = {
                     Log.d(TAG, "Navegando al formulario de crear emprendedor")
-                    val route = Routes.EMPRENDEDOR_FORM.replace("{id}", "0")
+                    val route = Routes.EMPRENDEDOR_FORM
+                        .replace("{id}", "0")
+                        .replace("{preselectedMunicipalidadId}", "0")
                     navController.navigate(route)
+                },
+                onNavigateToMapa = {
+                    Log.d(TAG, "Navegando al mapa de emprendedores")
+                    navController.navigate(Routes.MAPA_UBICACION)
                 },
                 onBack = {
                     Log.d(TAG, "Volviendo desde emprendedores")
@@ -282,8 +318,14 @@ fun TurismoApp(factory: ViewModelFactory) {
                 },
                 onNavigateToCreate = {
                     Log.d(TAG, "Navegando al formulario de crear emprendedor para municipalidad: $municipalidadId")
-                    val route = Routes.EMPRENDEDOR_FORM.replace("{id}", "0")
+                    val route = Routes.EMPRENDEDOR_FORM
+                        .replace("{id}", "0")
+                        .replace("{preselectedMunicipalidadId}", municipalidadId.toString())
                     navController.navigate(route)
+                },
+                onNavigateToMapa = {
+                    Log.d(TAG, "Navegando al mapa de emprendedores de municipalidad: $municipalidadId")
+                    navController.navigate(Routes.MAPA_UBICACION)
                 },
                 onBack = {
                     Log.d(TAG, "Volviendo desde emprendedores de municipalidad")
@@ -301,7 +343,9 @@ fun TurismoApp(factory: ViewModelFactory) {
             EmprendedorDetailScreen(
                 emprendedorId = id,
                 onNavigateToEdit = {
-                    val route = Routes.EMPRENDEDOR_FORM.replace("{id}", id.toString())
+                    val route = Routes.EMPRENDEDOR_FORM
+                        .replace("{id}", id.toString())
+                        .replace("{preselectedMunicipalidadId}", "0")
                     navController.navigate(route)
                 },
                 onNavigateToMunicipalidad = { municipalidadId ->
@@ -321,12 +365,20 @@ fun TurismoApp(factory: ViewModelFactory) {
 
         composable(
             route = Routes.EMPRENDEDOR_FORM,
-            arguments = listOf(navArgument("id") { type = NavType.LongType })
+            arguments = listOf(
+                navArgument("id") { type = NavType.LongType },
+                navArgument("preselectedMunicipalidadId") { 
+                    type = NavType.LongType
+                    defaultValue = 0L
+                }
+            )
         ) { backStackEntry ->
             val id = backStackEntry.arguments?.getLong("id") ?: 0L
+            val preselectedMunicipalidadId = backStackEntry.arguments?.getLong("preselectedMunicipalidadId") ?: 0L
 
             EmprendedorFormScreen(
                 emprendedorId = id,
+                preselectedMunicipalidadId = preselectedMunicipalidadId,
                 onSuccess = { navController.popBackStack() },
                 onBack = { navController.popBackStack() },
                 factory = factory
@@ -409,8 +461,14 @@ fun TurismoApp(factory: ViewModelFactory) {
                 },
                 onNavigateToCreate = {
                     Log.d(TAG, "Navegando al formulario de crear emprendedor para categoría: $categoriaId")
-                    val route = Routes.EMPRENDEDOR_FORM.replace("{id}", "0")
+                    val route = Routes.EMPRENDEDOR_FORM
+                        .replace("{id}", "0")
+                        .replace("{preselectedMunicipalidadId}", "0")
                     navController.navigate(route)
+                },
+                onNavigateToMapa = {
+                    Log.d(TAG, "Navegando al mapa de emprendedores de categoría: $categoriaId")
+                    navController.navigate(Routes.MAPA_UBICACION)
                 },
                 onBack = {
                     Log.d(TAG, "Volviendo desde emprendedores de categoría")
@@ -555,6 +613,10 @@ fun TurismoApp(factory: ViewModelFactory) {
                     val route = Routes.SERVICIO_DETAIL.replace("{id}", id.toString())
                     navController.navigate(route)
                 },
+                onNavigateToCarrito = {
+                    Log.d(TAG, "Navegando al carrito desde tienda de servicios")
+                    navController.navigate(Routes.CARRITO)
+                },
                 onBack = {
                     navController.popBackStack()
                 },
@@ -577,6 +639,10 @@ fun TurismoApp(factory: ViewModelFactory) {
                 onNavigateToEmprendedor = { emprendedorId ->
                     val route = Routes.EMPRENDEDOR_DETAIL.replace("{id}", emprendedorId.toString())
                     navController.navigate(route)
+                },
+                onNavigateToCarrito = {
+                    Log.d(TAG, "Navegando al carrito desde detalle de servicio")
+                    navController.navigate(Routes.CARRITO)
                 },
                 onBack = {
                     navController.popBackStack()
@@ -744,6 +810,144 @@ fun TurismoApp(factory: ViewModelFactory) {
                     navController.popBackStack()
                 },
                 factory = factory
+            )
+        }
+        
+        // ========== NUEVAS RUTAS CARRITO Y UBICACIÓN ==========
+        
+        // Carrito de compras
+        composable(Routes.CARRITO) {
+            CarritoScreen(
+                onNavigateToCheckout = {
+                    navController.navigate(Routes.CHECKOUT)
+                },
+                onNavigateToServicio = { servicioId ->
+                    val route = Routes.SERVICIO_DETAIL.replace("{id}", servicioId.toString())
+                    navController.navigate(route)
+                },
+                onBack = {
+                    navController.popBackStack()
+                },
+                factory = factory
+            )
+        }
+        
+        // Checkout (crear reserva desde carrito)
+        composable(Routes.CHECKOUT) {
+            CheckoutScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onCheckoutSuccess = { reservaId ->
+                    // Navegar al detalle de la reserva creada
+                    val route = Routes.RESERVA_CARRITO_DETAIL.replace("{id}", reservaId.toString())
+                    navController.navigate(route) {
+                        popUpTo(Routes.CARRITO) { inclusive = true }
+                    }
+                },
+                viewModelFactory = factory
+            )
+        }
+        
+        // Reservas desde carrito
+        composable(Routes.RESERVAS_CARRITO) {
+            ReservasCarritoScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToDetail = { reservaId ->
+                    val route = Routes.RESERVA_CARRITO_DETAIL.replace("{id}", reservaId.toString())
+                    navController.navigate(route)
+                },
+                viewModelFactory = factory
+            )
+        }
+        
+        // Detalle de reserva carrito
+        composable(
+            route = Routes.RESERVA_CARRITO_DETAIL,
+            arguments = listOf(navArgument("id") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getLong("id") ?: 0L
+            ReservaCarritoDetailScreen(
+                reservaId = id,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToChat = { reservaCarritoId ->
+                    // Navegar al chat específico de la reserva
+                    navController.navigate(Routes.CHAT_CONVERSACIONES)
+                },
+                viewModelFactory = factory
+            )
+        }
+        
+        // Mapa de ubicaciones
+        composable(Routes.MAPA_UBICACION) {
+            MapaEmprendedoresScreen(
+                onNavigateToEmprendedor = { id ->
+                    Log.d(TAG, "Navegando al detalle de emprendedor desde mapa: $id")
+                    val route = Routes.EMPRENDEDOR_DETAIL.replace("{id}", id.toString())
+                    navController.navigate(route)
+                },
+                onBack = {
+                    Log.d(TAG, "Volviendo desde mapa de emprendedores")
+                    navController.popBackStack()
+                },
+                factory = factory
+            )
+        }
+        
+        // Selector de ubicación (implementado con LocationPicker dialog)
+        composable(Routes.SELECCIONAR_UBICACION) {
+            // Esta ruta se usa para casos especiales de selección de ubicación
+            // Por defecto, el LocationPicker se maneja directamente en los formularios
+            LaunchedEffect(Unit) {
+                navController.popBackStack()
+            }
+        }
+        
+        // Conversaciones de chat
+        composable(Routes.CHAT_CONVERSACIONES) {
+            ChatConversacionesScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToChat = { conversacion ->
+                    val route = Routes.CHAT_DETAIL.replace("{conversacionId}", conversacion.id.toString())
+                    navController.navigate(route)
+                },
+                viewModelFactory = factory
+            )
+        }
+        
+        // Detalle de chat
+        composable(
+            route = Routes.CHAT_DETAIL,
+            arguments = listOf(navArgument("conversacionId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val conversacionId = backStackEntry.arguments?.getLong("conversacionId") ?: 0L
+            
+            // Para pasar la conversación necesitamos obtenerla del ViewModel o del estado
+            // Por simplicidad, creamos una conversación temporal para la navegación
+            val conversacionTemporal = ConversacionResponse(
+                id = conversacionId,
+                usuarioId = 0L, // Se obtendría del contexto real
+                emprendedorId = 0L,
+                reservaCarritoId = null,
+                fechaCreacion = "",
+                ultimoMensaje = null,
+                mensajesNoLeidos = 0,
+                emprendedor = com.capachica.turismokotlin.data.model.EmprendedorBasic(0L, "Emprendedor", ""),
+                usuario = com.capachica.turismokotlin.data.model.UsuarioBasic(0L, "Usuario", "Usuario", "usuario", "usuario@email.com")
+            )
+            
+            ChatDetailScreen(
+                conversacion = conversacionTemporal,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                viewModelFactory = factory
             )
         }
     }

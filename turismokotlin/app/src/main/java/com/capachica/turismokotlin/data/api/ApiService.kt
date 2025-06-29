@@ -56,6 +56,13 @@ interface ApiService {
     @GET("emprendedores/rubro/{rubro}")
     suspend fun getEmprendedoresByRubro(@Path("rubro") rubro: String): Response<List<Emprendedor>>
 
+    @GET("emprendedores/cercanos")
+    suspend fun getEmprendedoresCercanos(
+        @Query("latitud") latitud: Double,
+        @Query("longitud") longitud: Double,
+        @Query("radio") radio: Double = 10.0
+    ): Response<List<Emprendedor>>
+
     @GET("emprendedores/mi-emprendedor")
     suspend fun getMiEmprendedor(): Response<Emprendedor>
 
@@ -83,7 +90,6 @@ interface ApiService {
     @DELETE("categorias/{id}")
     suspend fun deleteCategoria(@Path("id") id: Long): Response<Void>
 
-    // Update emprendedor endpoints to get by category
     @GET("emprendedores/categoria/{categoriaId}")
     suspend fun getEmprendedoresByCategoria(@Path("categoriaId") categoriaId: Long): Response<List<Emprendedor>>
 
@@ -111,6 +117,9 @@ interface ApiService {
 
     @GET("servicios/search")
     suspend fun searchServicios(@Query("termino") termino: String): Response<List<ServicioTuristico>>
+
+    @GET("servicios/categoria/{categoriaId}")
+    suspend fun getServiciosByCategoria(@Path("categoriaId") categoriaId: Long): Response<List<ServicioTuristico>>
 
     @GET("servicios/mis-servicios")
     suspend fun getMisServicios(): Response<List<ServicioTuristico>>
@@ -157,6 +166,9 @@ interface ApiService {
 
     @GET("planes/populares")
     suspend fun getPlanesMasPopulares(): Response<List<PlanTuristico>>
+
+    @GET("planes/categoria/{categoriaId}")
+    suspend fun getPlanesByCategoria(@Path("categoriaId") categoriaId: Long): Response<List<PlanTuristico>>
 
     @POST("planes")
     suspend fun createPlan(@Body request: PlanTuristicoRequest): Response<PlanTuristico>
@@ -259,4 +271,126 @@ interface ApiService {
 
     @DELETE("usuarios/{usuarioId}/desasignar-emprendedor")
     suspend fun desasignarUsuarioDeEmprendedor(@Path("usuarioId") usuarioId: Long): Response<String>
+
+    // ========== CARRITO ==========
+    @GET("carrito")
+    suspend fun getCarrito(): Response<CarritoResponse>
+
+    @POST("carrito/agregar")
+    suspend fun agregarItemAlCarrito(@Body request: CarritoItemRequest): Response<CarritoResponse>
+
+    @PUT("carrito/item/{itemId}")
+    suspend fun actualizarCantidadItem(
+        @Path("itemId") itemId: Long,
+        @Query("cantidad") cantidad: Int
+    ): Response<CarritoResponse>
+
+    @DELETE("carrito/item/{itemId}")
+    suspend fun eliminarItemDelCarrito(@Path("itemId") itemId: Long): Response<CarritoResponse>
+
+    @DELETE("carrito/limpiar")
+    suspend fun limpiarCarrito(): Response<CarritoResponse>
+
+    @GET("carrito/total")
+    suspend fun getTotalCarrito(): Response<CarritoTotalResponse>
+
+    @GET("carrito/contar")
+    suspend fun contarItemsCarrito(): Response<CarritoContarResponse>
+
+    // ========== RESERVAS DESDE CARRITO ==========
+    @POST("reservas-carrito/crear")
+    suspend fun crearReservaDesdeCarrito(@Body request: ReservaCarritoRequest): Response<ReservaCarritoResponse>
+
+    @GET("reservas-carrito/mis-reservas")
+    suspend fun getMisReservasCarrito(): Response<List<ReservaCarritoResponse>>
+
+    @GET("reservas-carrito/{id}")
+    suspend fun getReservaCarritoById(@Path("id") id: Long): Response<ReservaCarritoResponse>
+
+    @GET("reservas-carrito/codigo/{codigo}")
+    suspend fun getReservaCarritoByCodigo(@Path("codigo") codigo: String): Response<ReservaCarritoResponse>
+
+    @GET("reservas-carrito/estado/{estado}")
+    suspend fun getReservasCarritoPorEstado(@Path("estado") estado: EstadoReservaCarrito): Response<List<ReservaCarritoResponse>>
+
+    @GET("reservas-carrito/estadisticas")
+    suspend fun getEstadisticasReservasCarrito(): Response<EstadisticasReservaResponse>
+
+    @GET("reservas-carrito/emprendedor/reservas")
+    suspend fun getReservasParaEmprendedor(): Response<List<ReservaCarritoResponse>>
+
+    @PATCH("reservas-carrito/{id}/confirmar")
+    suspend fun confirmarReservaCarrito(@Path("id") id: Long): Response<ReservaCarritoResponse>
+
+    @PATCH("reservas-carrito/{id}/completar")
+    suspend fun completarReservaCarrito(@Path("id") id: Long): Response<ReservaCarritoResponse>
+
+    @PATCH("reservas-carrito/{id}/cancelar")
+    suspend fun cancelarReservaCarrito(
+        @Path("id") id: Long,
+        @Body request: CancelacionReservaRequest
+    ): Response<ReservaCarritoResponse>
+
+    // ========== UBICACIONES ==========
+    @GET("ubicaciones/emprendedores")
+    suspend fun getUbicacionesEmprendedores(): Response<List<EmprendedorUbicacion>>
+
+    @GET("ubicaciones/servicios")
+    suspend fun getUbicacionesServicios(): Response<List<ServicioUbicacion>>
+
+    @GET("ubicaciones/cercanos")
+    suspend fun buscarCercanos(
+        @Query("latitud") latitud: Double,
+        @Query("longitud") longitud: Double,
+        @Query("radio") radio: Double = 10.0,
+        @Query("tipo") tipo: String? = null
+    ): Response<BusquedaCercanosResponse>
+
+    @GET("ubicaciones/distancia")
+    suspend fun calcularDistancia(
+        @Query("latitudOrigen") latitudOrigen: Double,
+        @Query("longitudOrigen") longitudOrigen: Double,
+        @Query("latitudDestino") latitudDestino: Double,
+        @Query("longitudDestino") longitudDestino: Double
+    ): Response<DistanciaResponse>
+
+    @GET("ubicaciones/validar-coordenadas")
+    suspend fun validarCoordenadas(
+        @Query("latitud") latitud: Double,
+        @Query("longitud") longitud: Double
+    ): Response<ValidacionCoordenadaResponse>
+
+    @PUT("ubicaciones/emprendedor/{emprendedorId}")
+    suspend fun actualizarUbicacionEmprendedor(
+        @Path("emprendedorId") emprendedorId: Long,
+        @Body request: UbicacionRequest
+    ): Response<UbicacionResponse>
+
+    @PUT("ubicaciones/servicio/{servicioId}")
+    suspend fun actualizarUbicacionServicio(
+        @Path("servicioId") servicioId: Long,
+        @Body request: UbicacionRequest
+    ): Response<UbicacionResponse>
+
+    // ========== CHAT ==========
+    @POST("chat/mensaje")
+    suspend fun enviarMensaje(@Body request: MensajeRequest): Response<MensajeResponse>
+
+    @POST("chat/conversacion/iniciar-carrito")
+    suspend fun iniciarConversacionCarrito(@Body request: IniciarConversacionCarritoRequest): Response<ConversacionResponse>
+
+    @POST("chat/reserva-carrito/{reservaCarritoId}/mensaje-rapido")
+    suspend fun enviarMensajeRapido(
+        @Path("reservaCarritoId") reservaCarritoId: Long,
+        @Body request: MensajeRapidoRequest
+    ): Response<List<MensajeResponse>>
+
+    @GET("chat/conversaciones")
+    suspend fun getConversaciones(): Response<List<ConversacionResponse>>
+
+    @GET("chat/mensajes-no-leidos")
+    suspend fun getMensajesNoLeidos(): Response<MensajesNoLeidosResponse>
+
+    @GET("chat/reserva-carrito/{reservaCarritoId}/conversaciones")
+    suspend fun getConversacionesPorReserva(@Path("reservaCarritoId") reservaCarritoId: Long): Response<List<ConversacionResponse>>
 }
