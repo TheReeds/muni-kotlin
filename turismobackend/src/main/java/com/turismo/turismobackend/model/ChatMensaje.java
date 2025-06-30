@@ -63,7 +63,13 @@ public class ChatMensaje {
     
     // MÉTODO PARA DETERMINAR SI EL REMITENTE ES EMPRENDEDOR
     public boolean esDeEmprendedor() {
-        return emprendedor != null;
+    // Si es un mensaje de sistema, no es de emprendedor ni de usuario
+        if (this.tipo == TipoMensaje.SISTEMA) {
+            return false;
+        }
+        
+        // Es de emprendedor si tiene emprendedor asignado
+        return this.emprendedor != null;
     }
     
     public enum TipoMensaje {

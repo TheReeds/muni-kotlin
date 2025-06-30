@@ -270,6 +270,22 @@ public class ChatService {
     private ChatMensajeResponse convertToMensajeResponse(ChatMensaje mensaje) {
         boolean esDeEmprendedor = mensaje.esDeEmprendedor();
         
+        // Manejar casos especiales para mensajes de sistema
+        Long remitenteId = null;
+        String remitenteNombre = "Sistema";
+        
+        if (mensaje.getTipo() == ChatMensaje.TipoMensaje.SISTEMA) {
+            // Para mensajes de sistema, usar valores por defecto
+            remitenteId = null;
+            remitenteNombre = "Sistema";
+        } else if (esDeEmprendedor && mensaje.getEmprendedor() != null) {
+            remitenteId = mensaje.getEmprendedor().getId();
+            remitenteNombre = mensaje.getEmprendedor().getNombreEmpresa();
+        } else if (!esDeEmprendedor && mensaje.getUsuario() != null) {
+            remitenteId = mensaje.getUsuario().getId();
+            remitenteNombre = mensaje.getUsuario().getNombre() + " " + mensaje.getUsuario().getApellido();
+        }
+        
         return ChatMensajeResponse.builder()
                 .id(mensaje.getId())
                 .conversacionId(mensaje.getConversacion().getId())
@@ -278,10 +294,8 @@ public class ChatService {
                 .fechaEnvio(mensaje.getFechaEnvio())
                 .leido(mensaje.getLeido())
                 .esDeEmprendedor(esDeEmprendedor)
-                .remitenteId(esDeEmprendedor ? mensaje.getEmprendedor().getId() : mensaje.getUsuario().getId())
-                .remitenteNombre(esDeEmprendedor ? 
-                        mensaje.getEmprendedor().getNombreEmpresa() : 
-                        mensaje.getUsuario().getNombre() + " " + mensaje.getUsuario().getApellido())
+                .remitenteId(remitenteId)
+                .remitenteNombre(remitenteNombre)
                 .archivoUrl(mensaje.getArchivoUrl())
                 .archivoNombre(mensaje.getArchivoNombre())
                 .archivoTipo(mensaje.getArchivoTipo())
