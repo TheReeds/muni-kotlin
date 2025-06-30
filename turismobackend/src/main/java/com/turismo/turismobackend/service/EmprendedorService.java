@@ -192,7 +192,7 @@ public class EmprendedorService {
                 .nombre(emprendedor.getMunicipalidad().getNombre())
                 .distrito(emprendedor.getMunicipalidad().getDistrito())
                 .build();
-        
+
         // Mapear categoría resumida (si existe)
         EmprendedorResponse.CategoriaResumen categoriaResumen = null;
         if (emprendedor.getCategoria() != null) {
@@ -201,27 +201,28 @@ public class EmprendedorService {
                     .nombre(emprendedor.getCategoria().getNombre())
                     .build();
         }
-        
+
         // Construir respuesta
         return EmprendedorResponse.builder()
                 .id(emprendedor.getId())
                 .nombreEmpresa(emprendedor.getNombreEmpresa())
                 .rubro(emprendedor.getRubro())
                 .direccion(emprendedor.getDireccion())
-                .latitud(emprendedor.getLatitud())      // NUEVO CAMPO
-                .longitud(emprendedor.getLongitud())    // NUEVO CAMPO
-                .direccionCompleta(emprendedor.getDireccionCompleta()) // NUEVO CAMPO
+                .latitud(emprendedor.getLatitud())
+                .longitud(emprendedor.getLongitud())
+                .direccionCompleta(emprendedor.getDireccionCompleta())
                 .telefono(emprendedor.getTelefono())
                 .email(emprendedor.getEmail())
                 .sitioWeb(emprendedor.getSitioWeb())
                 .descripcion(emprendedor.getDescripcion())
                 .productos(emprendedor.getProductos())
                 .servicios(emprendedor.getServicios())
-                .usuarioId(emprendedor.getUsuario().getId())
+                .usuarioId(emprendedor.getUsuario() != null ? emprendedor.getUsuario().getId() : null) // ✅ Cambio clave
                 .municipalidad(municipalidadResumen)
                 .categoria(categoriaResumen)
                 .build();
     }
+
     // NUEVOS MÉTODOS para ubicación
     public List<EmprendedorResponse> getEmprendedoresCercanos(Double latitud, Double longitud, Double radioKm) {
         return emprendedorRepository.findAll().stream()

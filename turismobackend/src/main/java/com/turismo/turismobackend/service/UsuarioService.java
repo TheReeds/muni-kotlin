@@ -45,7 +45,7 @@ public class UsuarioService {
     public List<UsuarioResponse> getUsuariosPorRol(String rolNombre) {
         Rol.RolNombre rolEnum;
         try {
-            rolEnum = Rol.RolNombre.valueOf("ROLE_" + rolNombre.toUpperCase());
+            rolEnum = Rol.RolNombre.valueOf(rolNombre.toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Rol no válido: " + rolNombre);
         }
@@ -133,7 +133,7 @@ public class UsuarioService {
         // Convertir el nombre del rol a enum
         Rol.RolNombre rolEnum;
         try {
-            rolEnum = Rol.RolNombre.valueOf("ROLE_" + rolNombre.toUpperCase());
+            rolEnum = Rol.RolNombre.valueOf(rolNombre.toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Rol no válido: " + rolNombre);
         }
@@ -160,7 +160,7 @@ public class UsuarioService {
         // Convertir el nombre del rol a enum
         Rol.RolNombre rolEnum;
         try {
-            rolEnum = Rol.RolNombre.valueOf("ROLE_" + rolNombre.toUpperCase());
+            rolEnum = Rol.RolNombre.valueOf(rolNombre.toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Rol no válido: " + rolNombre);
         }

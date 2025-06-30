@@ -7,7 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -42,51 +44,81 @@ public class UsuarioController {
     
     @PutMapping("/{usuarioId}/asignar-emprendedor/{emprendedorId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> asignarUsuarioAEmprendedor(
+    public ResponseEntity<Map<String, String>> asignarUsuarioAEmprendedor(
             @PathVariable Long usuarioId,
             @PathVariable Long emprendedorId) {
+
         usuarioService.asignarUsuarioAEmprendedor(usuarioId, emprendedorId);
-        return ResponseEntity.ok("Usuario asignado al emprendedor correctamente");
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Usuario asignado al emprendedor correctamente");
+        return ResponseEntity.ok(response);
     }
-    
+
     @PutMapping("/{usuarioId}/cambiar-emprendedor/{emprendedorId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> cambiarUsuarioDeEmprendedor(
+    public ResponseEntity<Map<String, String>> cambiarUsuarioDeEmprendedor(
             @PathVariable Long usuarioId,
             @PathVariable Long emprendedorId) {
+
         usuarioService.cambiarUsuarioDeEmprendedor(usuarioId, emprendedorId);
-        return ResponseEntity.ok("Usuario cambiado de emprendedor correctamente");
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Usuario cambiado de emprendedor correctamente");
+        return ResponseEntity.ok(response);
     }
     
     @DeleteMapping("/{usuarioId}/desasignar-emprendedor")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> desasignarUsuarioDeEmprendedor(@PathVariable Long usuarioId) {
+    public ResponseEntity<Map<String, String>> desasignarUsuarioDeEmprendedor(
+            @PathVariable Long usuarioId) {
+
         usuarioService.desasignarUsuarioDeEmprendedor(usuarioId);
-        return ResponseEntity.ok("Usuario desasignado del emprendedor correctamente");
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Usuario desasignado del emprendedor correctamente");
+        return ResponseEntity.ok(response);
     }
-    
+
     @PutMapping("/{usuarioId}/asignar-rol/{rol}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> asignarRolAUsuario(
+    public ResponseEntity<Map<String, String>> asignarRolAUsuario(
             @PathVariable Long usuarioId,
             @PathVariable String rol) {
+
         usuarioService.asignarRolAUsuario(usuarioId, rol);
-        return ResponseEntity.ok("Rol asignado al usuario correctamente");
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Rol asignado al usuario correctamente");
+
+        return ResponseEntity.ok(response);
     }
+
     
     @PutMapping("/{usuarioId}/quitar-rol/{rol}")
     @PreAuthorize("hasAnyRole('ROLE_EMPRENDEDOR', 'ROLE_ADMIN')")
-    public ResponseEntity<String> quitarRolAUsuario(
+    public ResponseEntity<Map<String, String>> quitarRolAUsuario(
             @PathVariable Long usuarioId,
             @PathVariable String rol) {
+        
         usuarioService.quitarRolAUsuario(usuarioId, rol);
-        return ResponseEntity.ok("Rol quitado al usuario correctamente");
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Rol quitado al usuario correctamente");
+
+        return ResponseEntity.ok(response);
     }
     
     @PutMapping("/{usuarioId}/resetear-roles")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> resetearRolesUsuario(@PathVariable Long usuarioId) {
+    public ResponseEntity<Map<String, String>> resetearRolesUsuario(@PathVariable Long usuarioId) {
+
         usuarioService.resetearRolesAUsuario(usuarioId);
-        return ResponseEntity.ok("Roles del usuario reseteados a ROLE_USER");
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Roles del usuario reseteados a ROLE_USER");
+
+        return ResponseEntity.ok(response);
     }
+
 }
