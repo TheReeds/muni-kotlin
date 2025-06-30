@@ -67,20 +67,26 @@ enum class TipoServicio {
     @SerializedName("ALIMENTACION")
     ALIMENTACION,
 
-    @SerializedName("GUIADO")
-    GUIADO,
+    @SerializedName("GUIA_TURISTICO")
+    GUIA_TURISTICO,
 
     @SerializedName("ACTIVIDAD_RECREATIVA")
     ACTIVIDAD_RECREATIVA,
 
-    @SerializedName("ACTIVIDAD_CULTURAL")
-    ACTIVIDAD_CULTURAL,
+    @SerializedName("CULTURAL")
+    CULTURAL,
 
-    @SerializedName("ACTIVIDAD_AVENTURA")
-    ACTIVIDAD_AVENTURA,
+    @SerializedName("AVENTURA")
+    AVENTURA,
 
-    @SerializedName("ACTIVIDAD_EDUCATIVA")
-    ACTIVIDAD_EDUCATIVA,
+    @SerializedName("WELLNESS")
+    WELLNESS,
+
+    @SerializedName("TOUR")
+    TOUR,
+
+    @SerializedName("GASTRONOMICO")
+    GASTRONOMICO,
 
     @SerializedName("OTRO")
     OTRO;
@@ -91,13 +97,15 @@ enum class TipoServicio {
                 "ALOJAMIENTO" -> ALOJAMIENTO
                 "TRANSPORTE" -> TRANSPORTE
                 "ALIMENTACION" -> ALIMENTACION
-                "GUIADO" -> GUIADO
+                "GUIA_TURISTICO" -> GUIA_TURISTICO
                 "ACTIVIDAD_RECREATIVA" -> ACTIVIDAD_RECREATIVA
-                "ACTIVIDAD_CULTURAL" -> ACTIVIDAD_CULTURAL
-                "ACTIVIDAD_AVENTURA" -> ACTIVIDAD_AVENTURA
-                "ACTIVIDAD_EDUCATIVA" -> ACTIVIDAD_EDUCATIVA
+                "CULTURAL" -> CULTURAL
+                "AVENTURA" -> AVENTURA
+                "WELLNESS" -> WELLNESS
+                "TOUR" -> TOUR
+                "GASTRONOMICO" -> GASTRONOMICO
                 "OTRO" -> OTRO
-                else -> OTRO // Valor por defecto
+                else -> OTRO
             }
         }
     }

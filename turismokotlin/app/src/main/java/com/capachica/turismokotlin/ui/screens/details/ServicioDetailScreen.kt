@@ -649,13 +649,14 @@ private fun getTipoServicioText(tipo: TipoServicio): String {
         TipoServicio.ALOJAMIENTO -> "Alojamiento"
         TipoServicio.TRANSPORTE -> "Transporte"
         TipoServicio.ALIMENTACION -> "Alimentación"
-        TipoServicio.GUIADO -> "Guía turística"
+        TipoServicio.GUIA_TURISTICO -> "Guía turística"
         TipoServicio.ACTIVIDAD_RECREATIVA -> "Recreación"
-        TipoServicio.ACTIVIDAD_CULTURAL -> "Cultural"
-        TipoServicio.ACTIVIDAD_AVENTURA -> "Aventura"
-        TipoServicio.ACTIVIDAD_EDUCATIVA -> "Educativa"
+        TipoServicio.CULTURAL -> "Cultural"
+        TipoServicio.AVENTURA -> "Aventura"
+        TipoServicio.WELLNESS -> "Bienestar"
+        TipoServicio.TOUR -> "Tour"
+        TipoServicio.GASTRONOMICO -> "Gastronómico"
         TipoServicio.OTRO -> "Otro"
-        null -> "Sin tipo"
     }
 }
 
@@ -664,12 +665,13 @@ private fun getTipoServicioIcon(tipo: TipoServicio): androidx.compose.ui.graphic
         TipoServicio.ALOJAMIENTO -> Icons.Default.Hotel
         TipoServicio.TRANSPORTE -> Icons.Default.DirectionsBus
         TipoServicio.ALIMENTACION -> Icons.Default.Restaurant
-        TipoServicio.GUIADO -> Icons.Default.Person
+        TipoServicio.GUIA_TURISTICO -> Icons.Default.Person
         TipoServicio.ACTIVIDAD_RECREATIVA -> Icons.Default.SportsEsports
-        TipoServicio.ACTIVIDAD_CULTURAL -> Icons.Default.Museum
-        TipoServicio.ACTIVIDAD_AVENTURA -> Icons.Default.Hiking
-        TipoServicio.ACTIVIDAD_EDUCATIVA -> Icons.Default.School
+        TipoServicio.CULTURAL -> Icons.Default.Museum
+        TipoServicio.AVENTURA -> Icons.Default.Hiking
+        TipoServicio.WELLNESS -> Icons.Default.Favorite
+        TipoServicio.TOUR -> Icons.Default.Map
+        TipoServicio.GASTRONOMICO -> Icons.Default.LocalDining
         TipoServicio.OTRO -> Icons.Default.Category
-        null -> Icons.Default.Fax
     }
 }

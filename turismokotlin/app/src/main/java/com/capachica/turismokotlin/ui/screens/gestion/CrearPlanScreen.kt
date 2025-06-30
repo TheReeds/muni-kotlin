@@ -374,7 +374,7 @@ fun CrearPlanScreen(
             municipalidades = uiState.municipalidades,
             onDismiss = { showMunicipalidadDialog = false },
             onSelected = { municipalidad ->
-                municipalidadId = municipalidad.id
+                municipalidadId = municipalidad.id  // Esto ahora funcionará correctamente
                 showMunicipalidadDialog = false
             }
         )
@@ -508,7 +508,7 @@ fun NivelDificultadDialog(
 fun MunicipalidadDialog(
     municipalidades: List<MunicipalidadDetallada>,
     onDismiss: () -> Unit,
-    onSelected: (Municipalidad) -> Unit
+    onSelected: (MunicipalidadDetallada) -> Unit  // Cambiar de Municipalidad a MunicipalidadDetallada
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -547,9 +547,6 @@ fun MunicipalidadDialog(
     )
 }
 
-fun onSelected(municipalidad: MunicipalidadDetallada) {
-
-}
 
 @Composable
 fun AgregarServicioDialog(
