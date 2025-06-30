@@ -869,18 +869,18 @@ private fun EditarServicioPlanDialog(
 fun getNivelDificultadText(nivel: NivelDificultad): String {
     return when (nivel) {
         NivelDificultad.FACIL -> "Fácil"
-        NivelDificultad.INTERMEDIO -> "Intermedio"
-        NivelDificultad.AVANZADO -> "Avanzado"
-        NivelDificultad.EXPERTO -> "Experto"
+        NivelDificultad.MODERADO -> "Intermedio"
+        NivelDificultad.DIFICIL -> "Avanzado"
+        NivelDificultad.EXTREMO -> "Experto"
     }
 }
 
 private fun getNivelDificultadIcon(nivel: NivelDificultad): androidx.compose.ui.graphics.vector.ImageVector {
     return when (nivel) {
         NivelDificultad.FACIL -> Icons.Default.SentimentSatisfied
-        NivelDificultad.INTERMEDIO -> Icons.Default.SentimentNeutral
-        NivelDificultad.AVANZADO -> Icons.Default.SentimentDissatisfied
-        NivelDificultad.EXPERTO -> Icons.Default.Warning
+        NivelDificultad.MODERADO -> Icons.Default.SentimentNeutral
+        NivelDificultad.DIFICIL -> Icons.Default.SentimentDissatisfied
+        NivelDificultad.EXTREMO -> Icons.Default.Warning
     }
 }
 
@@ -888,8 +888,8 @@ private fun getNivelDificultadIcon(nivel: NivelDificultad): androidx.compose.ui.
 private fun getNivelDificultadColor(nivel: NivelDificultad): androidx.compose.ui.graphics.Color {
     return when (nivel) {
         NivelDificultad.FACIL -> MaterialTheme.colorScheme.primary
-        NivelDificultad.INTERMEDIO -> MaterialTheme.colorScheme.secondary
-        NivelDificultad.AVANZADO -> MaterialTheme.colorScheme.tertiary
-        NivelDificultad.EXPERTO -> MaterialTheme.colorScheme.error
+        NivelDificultad.MODERADO -> MaterialTheme.colorScheme.secondary
+        NivelDificultad.DIFICIL -> MaterialTheme.colorScheme.tertiary
+        NivelDificultad.EXTREMO -> MaterialTheme.colorScheme.error
     }
 }

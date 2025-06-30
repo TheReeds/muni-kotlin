@@ -5,7 +5,7 @@ enum class EstadoPlan {
 }
 
 enum class NivelDificultad {
-    FACIL, INTERMEDIO, AVANZADO, EXPERTO
+    FACIL, MODERADO, DIFICIL, EXTREMO
 }
 
 data class ServicioPlan(

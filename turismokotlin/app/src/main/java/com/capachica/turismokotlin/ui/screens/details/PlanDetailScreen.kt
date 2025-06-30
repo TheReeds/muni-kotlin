@@ -534,10 +534,11 @@ private fun ServicioPlanCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = servicioPlan.servicio.emprendedor.nombreEmpresa,
+                    text = servicioPlan.servicio.emprendedor?.nombreEmpresa ?: "Empresa no disponible",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+
 
                 if (servicioPlan.precioEspecial > 0) {
                     Text(
