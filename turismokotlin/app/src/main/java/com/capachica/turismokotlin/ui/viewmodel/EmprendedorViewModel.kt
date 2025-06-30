@@ -3,113 +3,80 @@ package com.capachica.turismokotlin.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.capachica.turismokotlin.data.model.Emprendedor
-import com.capachica.turismokotlin.data.model.EmprendedorRequest
-import com.capachica.turismokotlin.data.repository.EmprendedorRepository
-import com.capachica.turismokotlin.data.repository.Result
+import com.capachica.turismokotlin.data.model.Servicio
+import com.capachica.turismokotlin.data.repository.CategoriasRepository
+import com.capachica.turismokotlin.data.repository.EmprendedoresRepository
+import com.capachica.turismokotlin.data.repository.ServiciosRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class EmprendedorViewModel(private val repository: EmprendedorRepository) : ViewModel() {
+@HiltViewModel
+class EmprendedorViewModel @Inject constructor(
+    private val emprendedoresRepository: EmprendedoresRepository,
+    private val serviciosRepository: ServiciosRepository,
+    private val categoriasRepository: CategoriasRepository
+) : ViewModel() {
 
-    private val _emprendedoresState = MutableStateFlow<Result<List<Emprendedor>>>(Result.Loading)
-    val emprendedoresState: StateFlow<Result<List<Emprendedor>>> = _emprendedoresState
+    private val _uiState = MutableStateFlow(EmprendedorUiState())
+    val uiState: StateFlow<EmprendedorUiState> = _uiState.asStateFlow()
 
-    private val _emprendedorState = MutableStateFlow<Result<Emprendedor>>(Result.Loading)
-    val emprendedorState: StateFlow<Result<Emprendedor>> = _emprendedorState
-
-    // Cambio crítico: inicializamos con un estado inicial (no Loading)
-    private val _createUpdateState = MutableStateFlow<Result<Emprendedor>?>(null)
-    val createUpdateState: StateFlow<Result<Emprendedor>?> = _createUpdateState
-
-    // Cambio crítico: inicializamos con un estado inicial (no Loading)
-    private val _deleteState = MutableStateFlow<Result<Boolean>?>(null)
-    val deleteState: StateFlow<Result<Boolean>?> = _deleteState
-
-    // Método para resetear estados cuando se inicia un formulario
-    fun resetStates() {
-        _createUpdateState.value = null
-        _deleteState.value = null
-    }
-
-    fun getAllEmprendedores() {
-        _emprendedoresState.value = Result.Loading
+    fun loadEmprendedorDetails(emprendedorId: Long) {
         viewModelScope.launch {
-            repository.getAllEmprendedores().collect {
-                _emprendedoresState.value = it
-            }
+            _uiState.value = _uiState.value.copy(isLoading = true)
+
+            val emprendedorDeferred = async { emprendedoresRepository.getEmprendedorById(emprendedorId) }
+            val serviciosDeferred = async { serviciosRepository.getServiciosByEmprendedor(emprendedorId) }
+
+            val emprendedorResult = emprendedorDeferred.await()
+            val serviciosResult = serviciosDeferred.await()
+
+            _uiState.value = _uiState.value.copy(
+                isLoading = false,
+                emprendedor = emprendedorResult.getOrNull(),
+                servicios = serviciosResult.getOrElse { emptyList() },
+                error = when {
+                    emprendedorResult.isFailure -> emprendedorResult.exceptionOrNull()?.message
+                    serviciosResult.isFailure -> serviciosResult.exceptionOrNull()?.message
+                    else -> null
+                }
+            )
         }
     }
 
-    fun getEmprendedorById(id: Long) {
-        _emprendedorState.value = Result.Loading
+    fun loadEmprendedoresByCategoria(categoriaId: Long) {
         viewModelScope.launch {
-            repository.getEmprendedorById(id).collect {
-                _emprendedorState.value = it
-            }
+            _uiState.value = _uiState.value.copy(isLoading = true)
+
+            emprendedoresRepository.getEmprendedoresByCategoria(categoriaId)
+                .onSuccess { emprendedores ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        emprendedoresByCategoria = emprendedores
+                    )
+                }
+                .onFailure { exception ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = exception.message
+                    )
+                }
         }
     }
 
-    fun getEmprendedoresByMunicipalidad(municipalidadId: Long) {
-        _emprendedoresState.value = Result.Loading
-        viewModelScope.launch {
-            repository.getEmprendedoresByMunicipalidad(municipalidadId).collect {
-                _emprendedoresState.value = it
-            }
-        }
-    }
-
-    fun getEmprendedoresByRubro(rubro: String) {
-        _emprendedoresState.value = Result.Loading
-        viewModelScope.launch {
-            repository.getEmprendedoresByRubro(rubro).collect {
-                _emprendedoresState.value = it
-            }
-        }
-    }
-
-    fun getEmprendedoresByCategoria(categoriaId: Long) {
-        _emprendedoresState.value = Result.Loading
-        viewModelScope.launch {
-            repository.getEmprendedoresByCategoria(categoriaId).collect {
-                _emprendedoresState.value = it
-            }
-        }
-    }
-
-    fun getMiEmprendedor() {
-        _emprendedorState.value = Result.Loading
-        viewModelScope.launch {
-            repository.getMiEmprendedor().collect {
-                _emprendedorState.value = it
-            }
-        }
-    }
-
-    fun createEmprendedor(request: EmprendedorRequest) {
-        _createUpdateState.value = Result.Loading
-        viewModelScope.launch {
-            repository.createEmprendedor(request).collect {
-                _createUpdateState.value = it
-            }
-        }
-    }
-
-    fun updateEmprendedor(id: Long, request: EmprendedorRequest) {
-        _createUpdateState.value = Result.Loading
-        viewModelScope.launch {
-            repository.updateEmprendedor(id, request).collect {
-                _createUpdateState.value = it
-            }
-        }
-    }
-
-    fun deleteEmprendedor(id: Long) {
-        _deleteState.value = Result.Loading
-        viewModelScope.launch {
-            repository.deleteEmprendedor(id).collect {
-                _deleteState.value = it
-            }
-        }
+    fun clearError() {
+        _uiState.value = _uiState.value.copy(error = null)
     }
 }
+
+data class EmprendedorUiState(
+    val isLoading: Boolean = false,
+    val emprendedor: Emprendedor? = null,
+    val servicios: List<Servicio> = emptyList(),
+    val emprendedoresByCategoria: List<Emprendedor> = emptyList(),
+    val error: String? = null
+)

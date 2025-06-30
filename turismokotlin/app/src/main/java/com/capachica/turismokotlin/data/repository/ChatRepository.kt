@@ -1,108 +1,116 @@
 package com.capachica.turismokotlin.data.repository
 
-import com.capachica.turismokotlin.data.api.ApiService
-import com.capachica.turismokotlin.data.model.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import com.capachica.turismokotlin.data.model.Conversacion
+import com.capachica.turismokotlin.data.model.EnviarMensajeRequest
+import com.capachica.turismokotlin.data.model.MensajeChat
+import com.capachica.turismokotlin.network.api.ChatApiService
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class ChatRepository(private val apiService: ApiService) {
+@Singleton
+class ChatRepository @Inject constructor(
+    private val chatApiService: ChatApiService
+) {
 
-    fun getConversaciones(): Flow<Result<List<ConversacionResponse>>> = flow {
-        emit(Result.Loading)
-        try {
-            val response = apiService.getConversaciones()
+    suspend fun getConversaciones(): Result<List<Conversacion>> {
+        return try {
+            val response = chatApiService.getConversaciones()
             if (response.isSuccessful) {
-                response.body()?.let { conversaciones ->
-                    emit(Result.Success(conversaciones))
-                } ?: emit(Result.Error("No se encontraron conversaciones"))
+                Result.success(response.body() ?: emptyList())
             } else {
-                emit(Result.Error("Error al obtener conversaciones: ${response.message()}"))
+                Result.failure(Exception("Error al cargar conversaciones: ${response.message()}"))
             }
         } catch (e: Exception) {
-            emit(Result.Error("Error de conexión: ${e.message}"))
+            Result.failure(e)
         }
     }
 
-    fun getMensajesNoLeidos(): Flow<Result<MensajesNoLeidosResponse>> = flow {
-        emit(Result.Loading)
-        try {
-            val response = apiService.getMensajesNoLeidos()
-            if (response.isSuccessful) {
-                response.body()?.let { mensajes ->
-                    emit(Result.Success(mensajes))
-                } ?: emit(Result.Error("Error al obtener mensajes no leídos"))
-            } else {
-                emit(Result.Error("Error al obtener mensajes no leídos: ${response.message()}"))
-            }
-        } catch (e: Exception) {
-            emit(Result.Error("Error de conexión: ${e.message}"))
-        }
-    }
-
-    fun enviarMensaje(request: MensajeRequest): Flow<Result<MensajeResponse>> = flow {
-        emit(Result.Loading)
-        try {
-            val response = apiService.enviarMensaje(request)
-            if (response.isSuccessful) {
-                response.body()?.let { mensaje ->
-                    emit(Result.Success(mensaje))
-                } ?: emit(Result.Error("Error al enviar mensaje"))
-            } else {
-                emit(Result.Error("Error al enviar mensaje: ${response.message()}"))
-            }
-        } catch (e: Exception) {
-            emit(Result.Error("Error de conexión: ${e.message}"))
-        }
-    }
-
-    fun iniciarConversacionCarrito(request: IniciarConversacionCarritoRequest): Flow<Result<ConversacionResponse>> = flow {
-        emit(Result.Loading)
-        try {
-            val response = apiService.iniciarConversacionCarrito(request)
+    suspend fun getConversacion(conversacionId: Long): Result<Conversacion> {
+        return try {
+            val response = chatApiService.getConversacion(conversacionId)
             if (response.isSuccessful) {
                 response.body()?.let { conversacion ->
-                    emit(Result.Success(conversacion))
-                } ?: emit(Result.Error("Error al iniciar conversación"))
+                    Result.success(conversacion)
+                } ?: Result.failure(Exception("Conversación no encontrada"))
             } else {
-                emit(Result.Error("Error al iniciar conversación: ${response.message()}"))
+                Result.failure(Exception("Error al cargar conversación: ${response.message()}"))
             }
         } catch (e: Exception) {
-            emit(Result.Error("Error de conexión: ${e.message}"))
+            Result.failure(e)
         }
     }
 
-    fun enviarMensajeRapido(
-        reservaCarritoId: Long,
-        request: MensajeRapidoRequest
-    ): Flow<Result<List<MensajeResponse>>> = flow {
-        emit(Result.Loading)
-        try {
-            val response = apiService.enviarMensajeRapido(reservaCarritoId, request)
+    suspend fun getMensajes(conversacionId: Long, pagina: Int = 0): Result<List<MensajeChat>> {
+        return try {
+            val response = chatApiService.getMensajes(conversacionId, pagina)
             if (response.isSuccessful) {
-                response.body()?.let { mensajes ->
-                    emit(Result.Success(mensajes))
-                } ?: emit(Result.Error("Error al enviar mensaje rápido"))
+                Result.success(response.body() ?: emptyList())
             } else {
-                emit(Result.Error("Error al enviar mensaje rápido: ${response.message()}"))
+                Result.failure(Exception("Error al cargar mensajes: ${response.message()}"))
             }
         } catch (e: Exception) {
-            emit(Result.Error("Error de conexión: ${e.message}"))
+            Result.failure(e)
         }
     }
 
-    fun getConversacionesPorReserva(reservaCarritoId: Long): Flow<Result<List<ConversacionResponse>>> = flow {
-        emit(Result.Loading)
-        try {
-            val response = apiService.getConversacionesPorReserva(reservaCarritoId)
+    suspend fun iniciarConversacion(
+        emprendedorId: Long,
+        reservaId: Long? = null
+    ): Result<Conversacion> {
+        return try {
+            val response = chatApiService.iniciarConversacion(emprendedorId, reservaId)
             if (response.isSuccessful) {
-                response.body()?.let { conversaciones ->
-                    emit(Result.Success(conversaciones))
-                } ?: emit(Result.Error("No se encontraron conversaciones para esta reserva"))
+                response.body()?.let { conversacion ->
+                    Result.success(conversacion)
+                } ?: Result.failure(Exception("Error al crear conversación"))
             } else {
-                emit(Result.Error("Error al obtener conversaciones: ${response.message()}"))
+                Result.failure(Exception("Error al iniciar conversación: ${response.message()}"))
             }
         } catch (e: Exception) {
-            emit(Result.Error("Error de conexión: ${e.message}"))
+            Result.failure(e)
+        }
+    }
+
+    suspend fun enviarMensaje(request: EnviarMensajeRequest): Result<MensajeChat> {
+        return try {
+            val response = chatApiService.enviarMensaje(request)
+            if (response.isSuccessful) {
+                response.body()?.let { mensaje ->
+                    Result.success(mensaje)
+                } ?: Result.failure(Exception("Error al enviar mensaje"))
+            } else {
+                Result.failure(Exception("Error al enviar mensaje: ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun marcarComoLeido(conversacionId: Long): Result<Unit> {
+        return try {
+            val response = chatApiService.marcarComoLeido(conversacionId)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Error al marcar como leído: ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun cerrarConversacion(conversacionId: Long): Result<Conversacion> {
+        return try {
+            val response = chatApiService.cerrarConversacion(conversacionId)
+            if (response.isSuccessful) {
+                response.body()?.let { conversacion ->
+                    Result.success(conversacion)
+                } ?: Result.failure(Exception("Error al cerrar conversación"))
+            } else {
+                Result.failure(Exception("Error al cerrar conversación: ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 }

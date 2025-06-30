@@ -1,11 +1,7 @@
 package com.capachica.turismokotlin.ui.screens.home
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.lazy.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -13,586 +9,436 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.capachica.turismokotlin.data.model.*
-import com.capachica.turismokotlin.data.repository.Result
-import com.capachica.turismokotlin.ui.components.LoadingScreen
-import com.capachica.turismokotlin.ui.viewmodel.*
-import kotlinx.coroutines.launch
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.capachica.turismokotlin.data.model.Plan
+import com.capachica.turismokotlin.data.model.Servicio
+import com.capachica.turismokotlin.ui.components.EmprendedorCard
+import com.capachica.turismokotlin.ui.components.PlanCard
+import com.capachica.turismokotlin.ui.components.PlanListItem
+import com.capachica.turismokotlin.ui.components.ServiceCard
+import com.capachica.turismokotlin.ui.viewmodel.AuthViewModel
+import com.capachica.turismokotlin.ui.viewmodel.CartViewModel
+import com.capachica.turismokotlin.ui.viewmodel.HomeUiState
+import com.capachica.turismokotlin.ui.viewmodel.HomeViewModel
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.navigation.NavHostController
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onNavigateToMunicipalidades: () -> Unit,
-    onNavigateToEmprendedores: () -> Unit,
-    onNavigateToCategorias: () -> Unit,
-    onNavigateToPlanes: () -> Unit,
-    onNavigateToMisPlanes: (() -> Unit)?,
-    onNavigateToMisReservas: () -> Unit,
-    onNavigateToReservasCarrito: () -> Unit,
-    onNavigateToServicios: () -> Unit,
-    onNavigateToCarrito: () -> Unit,
+    onNavigateToPlan: (Long) -> Unit,
+    onNavigateToEmprendedor: (Long) -> Unit,
+    onNavigateToServicioDetail: (Long) -> Unit = {},
+    onNavigateToMap: () -> Unit,
+    onNavigateToCart: () -> Unit,
+    onNavigateToProfile: () -> Unit,
     onNavigateToChat: () -> Unit,
-    onNavigateToAdmin: (() -> Unit)?,
-    onLogout: () -> Unit,
-    factory: ViewModelFactory
+    onNavigateToGestion: () -> Unit = {}, // NUEVO - Agregar este parámetro
+    onNavigateToAdminDashboard: () -> Unit = {},
+    onNavigateToEmprendedorDashboard: () -> Unit = {}, // Mantener por compatibilidad
+    onNavigateToMunicipalidadDashboard: () -> Unit = {},
+    homeViewModel: HomeViewModel = hiltViewModel(),
+    cartViewModel: CartViewModel = hiltViewModel(),
+    authViewModel: AuthViewModel = hiltViewModel()
 ) {
-    val authViewModel: AuthViewModel = viewModel(factory = factory)
-    val planViewModel: PlanTuristicoViewModel = viewModel(factory = factory)
-    val servicioViewModel: ServicioTuristicoViewModel = viewModel(factory = factory)
-    val carritoViewModel: CarritoViewModel = viewModel(factory = factory)
-    
-    val scope = rememberCoroutineScope()
-    var selectedTab by remember { mutableIntStateOf(0) }
-    
-    val planesState by planViewModel.planesState.collectAsState()
-    val serviciosState by servicioViewModel.serviciosState.collectAsState()
-    val userRoles by authViewModel.userRoles.collectAsState()
-    val contarState by carritoViewModel.contarState.collectAsState()
-    
-    // Verificar si es administrador
-    val isAdmin = userRoles.contains("ROLE_ADMIN")
-    
-    // Cargar datos al inicio
+    val uiState by homeViewModel.uiState.collectAsState()
+    val cartItemCount by cartViewModel.itemCount.collectAsStateWithLifecycle(initialValue = 0)
+    val userRoles by authViewModel.userRoles.collectAsState(initial = emptySet())
+
+    var searchQuery by remember { mutableStateOf("") }
+    var showSearchResults by remember { mutableStateOf(false) }
+    var searchType by remember { mutableStateOf("planes") } // "planes" o "servicios"
+
+    // Para manejar el dialog de agregar servicio al carrito
+    var showAddServiceDialog by remember { mutableStateOf(false) }
+    var selectedServicio by remember { mutableStateOf<Servicio?>(null) }
+
     LaunchedEffect(Unit) {
-        planViewModel.getPlanesByEstado(EstadoPlan.ACTIVO)
-        servicioViewModel.getServiciosByEstado(EstadoServicio.ACTIVO)
+        homeViewModel.refreshData()
     }
-    
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Turismo Perú") },
-                navigationIcon = {
-                    // Icono de usuario o menú
-                    IconButton(onClick = { /* TODO: Mostrar perfil */ }) {
-                        Icon(
-                            imageVector = Icons.Default.AccountCircle,
-                            contentDescription = "Perfil"
-                        )
-                    }
-                },
-                actions = {
-                    // Botón del carrito con badge
-                    BadgedBox(
-                        badge = {
-                            if (contarState is Result.Success && (contarState as Result.Success<CarritoContarResponse>).data.cantidadItems > 0) {
-                                Badge {
-                                    Text((contarState as Result.Success<CarritoContarResponse>).data.cantidadItems.toString())
-                                }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Top App Bar
+        TopAppBar(
+            title = { Text("Turismo Perú") },
+            actions = {
+                // Botón de carrito con badge
+                BadgedBox(
+                    badge = {
+                        if (cartItemCount > 0) {
+                            Badge {
+                                Text("$cartItemCount")
                             }
                         }
-                    ) {
-                        IconButton(onClick = onNavigateToCarrito) {
-                            Icon(
-                                imageVector = Icons.Default.ShoppingCart,
-                                contentDescription = "Carrito"
-                            )
-                        }
                     }
-                    
-                    // Botón de chat
-                    IconButton(onClick = onNavigateToChat) {
-                        Icon(
-                            imageVector = Icons.Default.Chat,
-                            contentDescription = "Chat"
-                        )
-                    }
-                    
-                    // Botón de administración solo para admins
-                    if (isAdmin && onNavigateToAdmin != null) {
-                        IconButton(onClick = onNavigateToAdmin) {
-                            Icon(
-                                imageVector = Icons.Default.AdminPanelSettings,
-                                contentDescription = "Administración"
-                            )
-                        }
-                    }
-                    // Botón de logout
-                    IconButton(onClick = {
-                        scope.launch {
-                            authViewModel.logout()
-                            onLogout()
-                        }
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Logout,
-                            contentDescription = "Cerrar sesión"
-                        )
+                ) {
+                    IconButton(onClick = onNavigateToCart) {
+                        Icon(Icons.Default.ShoppingCart, contentDescription = "Carrito")
                     }
                 }
-            )
-        },
-        bottomBar = {
-            NavigationBar {
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Map, contentDescription = "Planes") },
-                    label = { Text("Planes") },
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 }
+
+                IconButton(onClick = onNavigateToProfile) {
+                    Icon(Icons.Default.Person, contentDescription = "Perfil")
+                }
+            }
+        )
+
+        // Barra de búsqueda con filtros
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = {
+                        searchQuery = it
+                        if (it.isNotEmpty()) {
+                            if (searchType == "planes") {
+                                homeViewModel.searchPlanes(it)
+                            } else {
+                                homeViewModel.searchServicios(it)
+                            }
+                            showSearchResults = true
+                        } else {
+                            showSearchResults = false
+                            homeViewModel.clearSearchResults()
+                        }
+                    },
+                    label = { Text("Buscar ${if (searchType == "planes") "planes" else "servicios"}") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = {
+                                searchQuery = ""
+                                showSearchResults = false
+                                homeViewModel.clearSearchResults()
+                            }) {
+                                Icon(Icons.Default.Clear, contentDescription = "Limpiar")
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Store, contentDescription = "Servicios") },
-                    label = { Text("Servicios") },
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Filtros de búsqueda
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        onClick = {
+                            searchType = "planes"
+                            if (searchQuery.isNotEmpty()) {
+                                homeViewModel.clearSearchResults()
+                                homeViewModel.searchPlanes(searchQuery)
+                            }
+                        },
+                        label = { Text("Planes") },
+                        selected = searchType == "planes",
+                        leadingIcon = if (searchType == "planes") {
+                            { Icon(Icons.Default.Check, contentDescription = null) }
+                        } else null
+                    )
+
+                    FilterChip(
+                        onClick = {
+                            searchType = "servicios"
+                            if (searchQuery.isNotEmpty()) {
+                                homeViewModel.clearSearchResults()
+                                homeViewModel.searchServicios(searchQuery)
+                            }
+                        },
+                        label = { Text("Servicios") },
+                        selected = searchType == "servicios",
+                        leadingIcon = if (searchType == "servicios") {
+                            { Icon(Icons.Default.Check, contentDescription = null) }
+                        } else null
+                    )
+                }
+            }
+        }
+
+        when {
+            uiState.isLoading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            uiState.error != null -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        Icons.Default.Error,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                    Text(
+                        text = "Error: ${uiState.error}",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                    Button(onClick = { homeViewModel.refreshData() }) {
+                        Text("Reintentar")
+                    }
+                }
+            }
+
+            showSearchResults -> {
+                SearchResultsContent(
+                    searchType = searchType,
+                    searchResultsPlanes = uiState.searchResults,
+                    searchResultsServicios = uiState.searchResultsServicios,
+                    isSearching = uiState.isSearching,
+                    onNavigateToPlan = onNavigateToPlan,
+                    onNavigateToEmprendedor = onNavigateToEmprendedor,
+                    onAddServiceToCart = { servicio ->
+                        selectedServicio = servicio
+                        showAddServiceDialog = true
+                    },
+                    onNavigateToServicioDetail = onNavigateToServicioDetail
                 )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.BookOnline, contentDescription = "Reservas") },
-                    label = { Text("Reservas") },
-                    selected = selectedTab == 2,
-                    onClick = { selectedTab = 2 }
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Explore, contentDescription = "Explorar") },
-                    label = { Text("Explorar") },
-                    selected = selectedTab == 3,
-                    onClick = { selectedTab = 3 }
+            }
+
+            else -> {
+                MainHomeContent(
+                    uiState = uiState,
+                    onNavigateToPlan = onNavigateToPlan,
+                    onNavigateToEmprendedor = onNavigateToEmprendedor,
+                    onNavigateToServicioDetail = onNavigateToServicioDetail, // Agregar esta línea
+                    onNavigateToMap = onNavigateToMap,
+                    onNavigateToChat = onNavigateToChat,
+                    onNavigateToAdminDashboard = onNavigateToAdminDashboard,
+                    onNavigateToEmprendedorDashboard = onNavigateToEmprendedorDashboard,
+                    onNavigateToMunicipalidadDashboard = onNavigateToMunicipalidadDashboard,
+                    onAddServiceToCart = { servicio ->
+                        selectedServicio = servicio
+                        showAddServiceDialog = true
+                    },
+                    userRoles = userRoles,
+                    onNavigateToGestion = onNavigateToGestion
                 )
             }
         }
-    ) { paddingValues ->
-        when (selectedTab) {
-            0 -> PlanesTabContent(
-                planesState = planesState,
-                onPlanClick = { plan -> onNavigateToPlanes() },
-                onReservarClick = { plan -> onNavigateToPlanes() },
-                modifier = Modifier.padding(paddingValues)
-            )
-            1 -> ServiciosTabContent(
-                serviciosState = serviciosState,
-                onServicioClick = { servicio -> onNavigateToServicios() },
-                modifier = Modifier.padding(paddingValues)
-            )
-            2 -> ReservasTabContent(
-                onNavigateToMisReservas = onNavigateToMisReservas,
-                onNavigateToReservasCarrito = onNavigateToReservasCarrito,
-                modifier = Modifier.padding(paddingValues)
-            )
-            3 -> ExplorarTabContent(
-                onNavigateToMunicipalidades = onNavigateToMunicipalidades,
-                onNavigateToEmprendedores = onNavigateToEmprendedores,
-                onNavigateToCategorias = onNavigateToCategorias,
-                isAdmin = isAdmin,
-                modifier = Modifier.padding(paddingValues)
-            )
-        }
+    }
+
+    // Dialog para agregar servicio al carrito
+    if (showAddServiceDialog && selectedServicio != null) {
+        AddServiceToCartDialog(
+            servicio = selectedServicio!!,
+            onDismiss = {
+                showAddServiceDialog = false
+                selectedServicio = null
+            },
+            onConfirm = { servicio, fechaServicio, notasEspeciales ->
+                cartViewModel.addToCart(
+                    servicioId = servicio.id,
+                    cantidad = 1,
+                    fechaServicio = fechaServicio,
+                    notasEspeciales = notasEspeciales
+                )
+                showAddServiceDialog = false
+                selectedServicio = null
+            }
+        )
     }
 }
 
 @Composable
-fun PlanesTabContent(
-    planesState: Result<List<PlanTuristico>>,
-    onPlanClick: (PlanTuristico) -> Unit,
-    onReservarClick: (PlanTuristico) -> Unit,
-    modifier: Modifier = Modifier
+private fun MainHomeContent(
+    uiState: HomeUiState,
+    onNavigateToPlan: (Long) -> Unit,
+    onNavigateToEmprendedor: (Long) -> Unit,
+    onNavigateToServicioDetail: (Long) -> Unit,
+    onNavigateToMap: () -> Unit,
+    onNavigateToChat: () -> Unit,
+    onNavigateToGestion: () -> Unit, // NUEVO - Agregar este parámetro
+    onNavigateToAdminDashboard: () -> Unit,
+    onNavigateToEmprendedorDashboard: () -> Unit,
+    onNavigateToMunicipalidadDashboard: () -> Unit,
+    onAddServiceToCart: (Servicio) -> Unit,
+    userRoles: Collection<String>
 ) {
     LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        item {
-            Text(
-                text = "Planes Turísticos Destacados",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-        }
-        
-        when (planesState) {
-            is Result.Loading -> {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-            }
-            is Result.Error -> {
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer
-                        )
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Error,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onErrorContainer
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = planesState.message,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onErrorContainer,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-                }
-            }
-            is Result.Success -> {
-                val planes = planesState.data.take(10) // Mostrar máximo 10 planes
-                if (planes.isEmpty()) {
-                    item {
-                        Card(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(32.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Explore,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(48.dp)
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Text(
-                                    text = "No hay planes disponibles",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                                Text(
-                                    text = "Próximamente habrá nuevos destinos",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
-                } else {
-                    items(planes) { plan ->
-                        PlanCard(
-                            plan = plan,
-                            onPlanClick = { onPlanClick(plan) },
-                            onReservarClick = { onReservarClick(plan) }
-                        )
-                    }
-                    
-                    item {
-                        OutlinedButton(
-                            onClick = { onPlanClick(planes.first()) }, // Navegar a todos los planes
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Ver todos los planes")
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Icon(
-                                imageVector = Icons.Default.ArrowForward,
-                                contentDescription = null
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ServiciosTabContent(
-    serviciosState: Result<List<ServicioTuristico>>,
-    onServicioClick: (ServicioTuristico) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        item {
-            Text(
-                text = "Servicios Disponibles",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-        }
-        
-        when (serviciosState) {
-            is Result.Loading -> {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-            }
-            is Result.Error -> {
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer
-                        )
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Error,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onErrorContainer
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = serviciosState.message,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onErrorContainer,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-                }
-            }
-            is Result.Success -> {
-                val servicios = serviciosState.data.take(10) // Mostrar máximo 10 servicios
-                if (servicios.isEmpty()) {
-                    item {
-                        Card(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(32.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Store,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(48.dp)
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Text(
-                                    text = "No hay servicios disponibles",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                                Text(
-                                    text = "Próximamente habrá nuevos servicios",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
-                } else {
-                    items(servicios) { servicio ->
-                        ServicioCard(
-                            servicio = servicio,
-                            onServicioClick = { onServicioClick(servicio) }
-                        )
-                    }
-                    
-                    item {
-                        OutlinedButton(
-                            onClick = { onServicioClick(servicios.first()) }, // Navegar a todos los servicios
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Ver todos los servicios")
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Icon(
-                                imageVector = Icons.Default.ArrowForward,
-                                contentDescription = null
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ExplorarTabContent(
-    onNavigateToMunicipalidades: () -> Unit,
-    onNavigateToEmprendedores: () -> Unit,
-    onNavigateToCategorias: () -> Unit,
-    isAdmin: Boolean = false,
-    modifier: Modifier = Modifier
-) {
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // Acciones rápidas
         item {
-            Text(
-                text = "Explorar",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-        }
-        
-        // Mostrar municipalidades solo para administradores
-        if (isAdmin) {
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = onNavigateToMunicipalidades
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.LocationCity,
-                            contentDescription = null,
-                            modifier = Modifier.size(32.dp),
-                            tint = MaterialTheme.colorScheme.primary
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(horizontal = 4.dp)
+            ) {
+                // Mapa
+                item {
+                    QuickActionCard(
+                        title = "Mapa",
+                        icon = Icons.Default.Map,
+                        onClick = onNavigateToMap
+                    )
+                }
+
+                // Chat
+                item {
+                    QuickActionCard(
+                        title = "Chat",
+                        icon = Icons.Default.Chat,
+                        onClick = onNavigateToChat
+                    )
+                }
+
+                // Gestión de Servicios/Planes (solo para emprendedores y admin)
+                if (userRoles.contains("ROLE_EMPRENDEDOR") || userRoles.contains("ROLE_ADMIN")) {
+                    item {
+                        QuickActionCard(
+                            title = "Gestión",
+                            icon = Icons.Default.BusinessCenter,
+                            onClick = onNavigateToGestion // Nuevo callback
                         )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Municipalidades",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Text(
-                                text = "Administrar municipalidades",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.Default.ChevronRight,
-                            contentDescription = null
+                    }
+                }
+
+                // Panel de Admin (solo si es admin)
+                if (userRoles.contains("ROLE_ADMIN")) {
+                    item {
+                        QuickActionCard(
+                            title = "Admin",
+                            icon = Icons.Default.AdminPanelSettings,
+                            onClick = onNavigateToAdminDashboard
+                        )
+                    }
+                }
+
+                // Panel de Municipalidad (solo si es municipalidad)
+                if (userRoles.contains("ROLE_MUNICIPALIDAD")) {
+                    item {
+                        QuickActionCard(
+                            title = "Municipalidad",
+                            icon = Icons.Default.LocationCity,
+                            onClick = onNavigateToMunicipalidadDashboard
                         )
                     }
                 }
             }
         }
-        
-        // Mostrar emprendedores solo para administradores
-        if (isAdmin) {
+
+        // Planes populares
+        if (uiState.planesPopulares.isNotEmpty()) {
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = onNavigateToEmprendedores
+                Text(
+                    text = "Planes Populares",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            item {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp)
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Business,
-                            contentDescription = null,
-                            modifier = Modifier.size(32.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Emprendedores",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Text(
-                                text = "Administrar emprendedores",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.Default.ChevronRight,
-                            contentDescription = null
+                    items(uiState.planesPopulares) { plan ->
+                        PlanCard(
+                            plan = plan,
+                            onClick = { onNavigateToPlan(plan.id) },
+                            onAddToCart = { /* Los planes se reservan directamente */ }
                         )
                     }
                 }
             }
         }
-        
-        // Mostrar categorías solo para administradores
-        if (isAdmin) {
+
+        // Categorías
+        if (uiState.categorias.isNotEmpty()) {
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = onNavigateToCategorias
+                Text(
+                    text = "Categorías",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            item {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp)
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Category,
-                            contentDescription = null,
-                            modifier = Modifier.size(32.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Categorías",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Text(
-                                text = "Administrar categorías",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.Default.ChevronRight,
-                            contentDescription = null
+                    items(uiState.categorias) { categoria ->
+                        FilterChip(
+                            onClick = { /* Filtrar por categoría */ },
+                            label = { Text(categoria.nombre) },
+                            selected = false,
+                            leadingIcon = {
+                                Badge {
+                                    Text("${categoria.cantidadEmprendedores}")
+                                }
+                            }
                         )
                     }
                 }
             }
         }
-        
-        // Sección para usuarios no administradores
-        if (!isAdmin) {
+
+        // Servicios destacados
+        if (uiState.servicios.isNotEmpty()) {
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth()
+                Text(
+                    text = "Servicios Destacados",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            items(uiState.servicios.take(5)) { servicio ->
+                ServiceCard(
+                    servicio = servicio,
+                    onAddToCart = { onAddServiceToCart(servicio) },
+                    onNavigateToEmprendedor = { onNavigateToEmprendedor(servicio.emprendedor.id) },
+                    onNavigateToDetail = { onNavigateToServicioDetail(servicio.id) } // Agregar esta línea
+                )
+            }
+        }
+
+        // Emprendedores destacados
+        if (uiState.emprendedores.isNotEmpty()) {
+            item {
+                Text(
+                    text = "Emprendedores Destacados",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            item {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Explore,
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "Explora nuestros servicios",
-                            style = MaterialTheme.typography.titleLarge,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Descubre planes turísticos y servicios disponibles en las pestañas de arriba",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
+                    items(uiState.emprendedores.take(10)) { emprendedor ->
+                        EmprendedorCard(
+                            emprendedor = emprendedor,
+                            onClick = { onNavigateToEmprendedor(emprendedor.id) }
                         )
                     }
                 }
@@ -601,314 +447,208 @@ fun ExplorarTabContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlanCard(
-    plan: PlanTuristico,
-    onPlanClick: () -> Unit,
-    onReservarClick: () -> Unit
+private fun QuickActionCard(
+    title: String,
+    icon: ImageVector,
+    onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
-            .fillMaxWidth(),
-        onClick = onPlanClick
+            .width(100.dp)
+            .height(80.dp),
+        onClick = onClick
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 1
+            )
+        }
+    }
+}
+
+@Composable
+private fun SearchResultsContent(
+    searchType: String,
+    searchResultsPlanes: List<Plan>,
+    searchResultsServicios: List<Servicio>,
+    isSearching: Boolean,
+    onNavigateToPlan: (Long) -> Unit,
+    onNavigateToEmprendedor: (Long) -> Unit,
+    onNavigateToServicioDetail: (Long) -> Unit, // Agregar este parámetro
+    onAddServiceToCart: (Servicio) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        item {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Placeholder para imagen
-                Card(
-                    modifier = Modifier.size(60.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Landscape,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-                }
-                
-                Spacer(modifier = Modifier.width(12.dp))
-                
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = plan.nombre,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    
-                    Text(
-                        text = plan.municipalidad.nombre,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    
-                    Spacer(modifier = Modifier.height(4.dp))
-                    
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Schedule,
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "${plan.duracionDias} día${if (plan.duracionDias > 1) "s" else ""}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = "$${plan.precioTotal}",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = "por persona",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            
-            if (!plan.descripcion.isNullOrEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
+                val resultCount = if (searchType == "planes") searchResultsPlanes.size else searchResultsServicios.size
                 Text(
-                    text = plan.descripcion,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    text = "Resultados de búsqueda ($resultCount)",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
                 )
+
+                if (isSearching) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                }
             }
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            Button(
-                onClick = onReservarClick,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Reservar ahora")
+        }
+
+        if (searchType == "planes") {
+            if (searchResultsPlanes.isEmpty() && !isSearching) {
+                item {
+                    EmptySearchCard("No se encontraron planes")
+                }
+            } else {
+                items(searchResultsPlanes) { plan ->
+                    PlanListItem(
+                        plan = plan,
+                        onClick = { onNavigateToPlan(plan.id) },
+                        onAddToCart = { /* Los planes se reservan directamente */ }
+                    )
+                }
+            }
+        } else {
+            if (searchResultsServicios.isEmpty() && !isSearching) {
+                item {
+                    EmptySearchCard("No se encontraron servicios")
+                }
+            } else {
+                items(searchResultsServicios) { servicio ->
+                    ServiceCard(
+                        servicio = servicio,
+                        onAddToCart = { onAddServiceToCart(servicio) },
+                        onNavigateToEmprendedor = { onNavigateToEmprendedor(servicio.emprendedor.id) },
+                        onNavigateToDetail = { onNavigateToServicioDetail(servicio.id) } // Agregar esta línea
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun ServicioCard(
-    servicio: ServicioTuristico,
-    onServicioClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth(),
-        onClick = onServicioClick
-    ) {
-        Row(
+private fun EmptySearchCard(message: String) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Icono del tipo de servicio
-            Card(
+            Icon(
+                Icons.Default.SearchOff,
+                contentDescription = null,
                 modifier = Modifier.size(48.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                )
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Icon(
-                        imageVector = when (servicio.tipo) {
-                            TipoServicio.ALOJAMIENTO -> Icons.Default.Hotel
-                            TipoServicio.TRANSPORTE -> Icons.Default.DirectionsBus
-                            TipoServicio.ALIMENTACION -> Icons.Default.Restaurant
-                            TipoServicio.GUIA_TURISTICO -> Icons.Default.Person
-                            TipoServicio.TOUR -> Icons.Default.Tour
-                            else -> Icons.Default.Star
-                        },
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onTertiaryContainer
-                    )
-                }
-            }
-            
-            Spacer(modifier = Modifier.width(12.dp))
-            
-            Column(modifier = Modifier.weight(1f)) {
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun AddServiceToCartDialog(
+    servicio: Servicio,
+    onDismiss: () -> Unit,
+    onConfirm: (Servicio, String, String?) -> Unit
+) {
+    var fechaServicio by remember { mutableStateOf("") }
+    var notasEspeciales by remember { mutableStateOf("") }
+
+    // Fecha por defecto (mañana)
+    LaunchedEffect(Unit) {
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.DAY_OF_MONTH, 1)
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        fechaServicio = dateFormat.format(calendar.time)
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Agregar al Carrito") },
+        text = {
+            Column {
                 Text(
                     text = servicio.nombre,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                
-                Text(
-                    text = servicio.emprendedor.nombreEmpresa,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                
-                Text(
-                    text = servicio.tipo.name.replace("_", " "),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-            
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = "$${servicio.precio}",
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "${servicio.duracionHoras}h",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = "S/ ${servicio.precio}",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.primary
                 )
-            }
-        }
-    }
-}
 
-@Composable
-fun ReservasTabContent(
-    onNavigateToMisReservas: () -> Unit,
-    onNavigateToReservasCarrito: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Text(
-            text = "Mis Reservas",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
-        )
-        
-        // Tarjeta para reservas de planes turísticos
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = onNavigateToMisReservas,
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.BookOnline,
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = fechaServicio,
+                    onValueChange = { fechaServicio = it },
+                    label = { Text("Fecha del servicio *") },
+                    placeholder = { Text("YYYY-MM-DD") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Reservas de Planes",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = "Ver mis reservas de planes turísticos",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Icon(
-                    imageVector = Icons.Default.ChevronRight,
-                    contentDescription = null
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedTextField(
+                    value = notasEspeciales,
+                    onValueChange = { notasEspeciales = it },
+                    label = { Text("Notas especiales (opcional)") },
+                    placeholder = { Text("Solicitudes específicas...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 3
                 )
             }
-        }
-        
-        // Tarjeta para reservas de servicios (carrito)
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = onNavigateToReservasCarrito,
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (fechaServicio.isNotBlank()) {
+                        onConfirm(
+                            servicio,
+                            fechaServicio,
+                            notasEspeciales.takeIf { it.isNotBlank() }
+                        )
+                    }
+                },
+                enabled = fechaServicio.isNotBlank()
             ) {
-                Icon(
-                    imageVector = Icons.Default.Receipt,
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                    tint = MaterialTheme.colorScheme.secondary
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Reservas de Servicios",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = "Ver mis reservas de servicios turísticos",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Icon(
-                    imageVector = Icons.Default.ChevronRight,
-                    contentDescription = null
-                )
+                Text("Agregar al Carrito")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
             }
         }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        Text(
-            text = "Información",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Medium
-        )
-        
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            )
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = "• Reservas de Planes: Reservas tradicionales de planes turísticos completos",
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "• Reservas de Servicios: Reservas creadas desde el carrito de servicios individuales",
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-        }
-    }
+    )
 }

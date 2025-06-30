@@ -1,61 +1,114 @@
 package com.capachica.turismokotlin.data.model
 
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
+import com.google.gson.annotations.SerializedName
 
-// ========== CHAT MODELS ==========
+// Enums para Chat
+enum class EstadoConversacion {
+    @SerializedName("ACTIVA")
+    ACTIVA,
 
-@Parcelize
-data class ConversacionResponse(
+    @SerializedName("CERRADA")
+    CERRADA,
+
+    @SerializedName("PAUSADA")
+    PAUSADA;
+
+    companion object {
+        fun fromString(value: String?): EstadoConversacion {
+            return when (value?.uppercase()) {
+                "ACTIVA" -> ACTIVA
+                "CERRADA" -> CERRADA
+                "PAUSADA" -> PAUSADA
+                else -> ACTIVA
+            }
+        }
+    }
+}
+
+enum class TipoMensaje {
+    @SerializedName("TEXTO")
+    TEXTO,
+
+    @SerializedName("IMAGEN")
+    IMAGEN,
+
+    @SerializedName("ARCHIVO")
+    ARCHIVO,
+
+    @SerializedName("UBICACION")
+    UBICACION,
+
+    @SerializedName("SISTEMA")
+    SISTEMA;
+
+    companion object {
+        fun fromString(value: String?): TipoMensaje {
+            return when (value?.uppercase()) {
+                "TEXTO" -> TEXTO
+                "IMAGEN" -> IMAGEN
+                "ARCHIVO" -> ARCHIVO
+                "UBICACION" -> UBICACION
+                "SISTEMA" -> SISTEMA
+                else -> TEXTO
+            }
+        }
+    }
+}
+
+// Modelo de Conversación
+data class Conversacion(
     val id: Long,
     val usuarioId: Long,
     val emprendedorId: Long,
-    val reservaCarritoId: Long?,
+    val reservaId: Long? = null,
+    val reservaCarritoId: Long? = null,
+    val codigoReservaAsociada: String? = null,
     val fechaCreacion: String,
-    val ultimoMensaje: MensajeResponse?,
-    val mensajesNoLeidos: Int,
-    val emprendedor: EmprendedorBasic,
-    val usuario: UsuarioBasic
-) : Parcelable
+    val fechaUltimoMensaje: String,
+    val estado: EstadoConversacion,
+    val usuario: UsuarioBasico,
+    val emprendedor: EmprendedorBasico,
+    val ultimoMensaje: MensajeChat? = null,
+    val mensajesNoLeidos: Int = 0,
+    val mensajesRecientes: List<MensajeChat> = emptyList()
+)
 
-@Parcelize
-data class MensajeResponse(
+// Modelo de Mensaje
+data class MensajeChat(
     val id: Long,
-    val contenido: String,
+    val conversacionId: Long,
+    val mensaje: String,
+    val tipo: TipoMensaje,
     val fechaEnvio: String,
     val leido: Boolean,
-    val tipoMensaje: TipoMensaje,
-    val emisor: UsuarioBasic,
-    val conversacionId: Long
-) : Parcelable
+    val esDeEmprendedor: Boolean,
+    val remitenteId: Long,
+    val remitenteNombre: String,
+    val archivoUrl: String? = null,
+    val archivoNombre: String? = null,
+    val archivoTipo: String? = null
+)
 
-@Parcelize
-data class MensajeRequest(
+// Modelo básico de Emprendedor para Chat
+data class EmprendedorBasico(
+    val id: Long,
+    val nombreEmpresa: String,
+    val rubro: String,
+    val telefono: String,
+    val email: String,
+    val municipalidad: MunicipalidadBasica
+)
+
+// Requests para enviar mensajes
+data class EnviarMensajeRequest(
     val conversacionId: Long,
-    val contenido: String,
-    val tipoMensaje: TipoMensaje = TipoMensaje.TEXTO
-) : Parcelable
+    val mensaje: String,
+    val tipo: TipoMensaje = TipoMensaje.TEXTO
+)
 
-@Parcelize
-data class IniciarConversacionCarritoRequest(
+data class CrearConversacionRequest(
     val emprendedorId: Long,
-    val mensaje: String
-) : Parcelable
-
-@Parcelize
-data class MensajeRapidoRequest(
-    val mensaje: String
-) : Parcelable
-
-@Parcelize
-data class MensajesNoLeidosResponse(
-    val cantidadNoLeidos: Int
-) : Parcelable
-
-enum class TipoMensaje {
-    TEXTO,
-    IMAGEN,
-    ARCHIVO,
-    UBICACION,
-    SISTEMA
-}
+    val mensaje: String,
+    val reservaId: Long? = null,
+    val reservaCarritoId: Long? = null
+)

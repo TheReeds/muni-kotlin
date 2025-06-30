@@ -3,76 +3,93 @@ package com.capachica.turismokotlin.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.capachica.turismokotlin.data.model.AuthResponse
-import com.capachica.turismokotlin.data.model.RegisterRequest
 import com.capachica.turismokotlin.data.repository.AuthRepository
-import com.capachica.turismokotlin.data.repository.Result
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
+@HiltViewModel
+class AuthViewModel @Inject constructor(
+    private val authRepository: AuthRepository
+) : ViewModel() {
 
-    // Inicializando con estado Initial en lugar de Loading
-    private val _loginState = MutableStateFlow<Result<AuthResponse>>(Result.Success(AuthResponse("", "", 0, "", "", emptyList())))
-    val loginState: StateFlow<Result<AuthResponse>> = _loginState
+    private val _uiState = MutableStateFlow(AuthUiState())
+    val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
-    private val _registerState = MutableStateFlow<Result<AuthResponse>>(Result.Success(AuthResponse("", "", 0, "", "", emptyList())))
-    val registerState: StateFlow<Result<AuthResponse>> = _registerState
-
-    private val _isLoggedIn = MutableStateFlow(false)
-    val isLoggedIn: StateFlow<Boolean> = _isLoggedIn
-    
-    private val _userRoles = MutableStateFlow<List<String>>(emptyList())
-    val userRoles: StateFlow<List<String>> = _userRoles
-
-    init {
-        // Verificar estado de login al iniciar el ViewModel
-        checkLoginStatus()
-    }
+    val isLoggedIn = authRepository.authToken.map { it != null }
+    val userRoles = authRepository.userRoles
+    val isAdmin = authRepository.isAdmin()
+    val isEmprendedor = authRepository.isEmprendedor()
+    val isMunicipalidad = authRepository.isMunicipalidad()
 
     fun login(username: String, password: String) {
-        _loginState.value = Result.Loading
         viewModelScope.launch {
-            repository.login(username, password).collect { result ->
-                _loginState.value = result
-                if (result is Result.Success) {
-                    _isLoggedIn.value = true
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+
+            authRepository.login(username, password)
+                .onSuccess { authResponse ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        isLoggedIn = true,
+                        authResponse = authResponse
+                    )
                 }
-            }
+                .onFailure { exception ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = exception.message
+                    )
+                }
         }
     }
 
-    fun register(request: RegisterRequest) {
-        _registerState.value = Result.Loading
+    fun register(
+        nombre: String,
+        apellido: String,
+        username: String,
+        email: String,
+        password: String,
+        roles: List<String> = listOf("ROLE_USER")
+    ) {
         viewModelScope.launch {
-            repository.register(request).collect { result ->
-                _registerState.value = result
-                if (result is Result.Success) {
-                    _isLoggedIn.value = true
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+
+            authRepository.register(nombre, apellido, username, email, password, roles)
+                .onSuccess { authResponse ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        isLoggedIn = true,
+                        authResponse = authResponse
+                    )
                 }
-            }
+                .onFailure { exception ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = exception.message
+                    )
+                }
         }
     }
 
     fun logout() {
         viewModelScope.launch {
-            repository.logout()
-            _isLoggedIn.value = false
-            // Reiniciar estados
-            _loginState.value = Result.Success(AuthResponse("", "", 0, "", "", emptyList()))
-            _registerState.value = Result.Success(AuthResponse("", "", 0, "", "", emptyList()))
+            authRepository.logout()
+            _uiState.value = AuthUiState()
         }
     }
 
-    fun checkLoginStatus() {
-        viewModelScope.launch {
-            repository.isUserLoggedIn().collect { isLoggedIn ->
-                _isLoggedIn.value = isLoggedIn
-            }
-            repository.getUserRoles().collect { roles ->
-                _userRoles.value = roles
-            }
-        }
+    fun clearError() {
+        _uiState.value = _uiState.value.copy(error = null)
     }
 }
+
+data class AuthUiState(
+    val isLoading: Boolean = false,
+    val isLoggedIn: Boolean = false,
+    val authResponse: AuthResponse? = null,
+    val error: String? = null
+)

@@ -4,168 +4,259 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.capachica.turismokotlin.data.model.*
 import com.capachica.turismokotlin.data.repository.ChatRepository
-import com.capachica.turismokotlin.data.repository.Result
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ChatViewModel(private val repository: ChatRepository) : ViewModel() {
+@HiltViewModel
+class ChatViewModel @Inject constructor(
+    private val chatRepository: ChatRepository
+) : ViewModel() {
 
-    private val _conversacionesState = MutableStateFlow<Result<List<ConversacionResponse>>>(Result.Loading)
-    val conversacionesState: StateFlow<Result<List<ConversacionResponse>>> = _conversacionesState
+    private val _uiState = MutableStateFlow(ChatUiState())
+    val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
-    private val _mensajesNoLeidosState = MutableStateFlow<Result<MensajesNoLeidosResponse>>(Result.Loading)
-    val mensajesNoLeidosState: StateFlow<Result<MensajesNoLeidosResponse>> = _mensajesNoLeidosState
+    private val _conversacionActual = MutableStateFlow<Conversacion?>(null)
+    val conversacionActual: StateFlow<Conversacion?> = _conversacionActual.asStateFlow()
 
-    private val _enviarMensajeState = MutableStateFlow<Result<MensajeResponse>?>(null)
-    val enviarMensajeState: StateFlow<Result<MensajeResponse>?> = _enviarMensajeState
-
-    private val _iniciarConversacionState = MutableStateFlow<Result<ConversacionResponse>?>(null)
-    val iniciarConversacionState: StateFlow<Result<ConversacionResponse>?> = _iniciarConversacionState
-
-    private val _mensajeRapidoState = MutableStateFlow<Result<List<MensajeResponse>>?>(null)
-    val mensajeRapidoState: StateFlow<Result<List<MensajeResponse>>?> = _mensajeRapidoState
-
-    private val _conversacionesPorReservaState = MutableStateFlow<Result<List<ConversacionResponse>>?>(null)
-    val conversacionesPorReservaState: StateFlow<Result<List<ConversacionResponse>>?> = _conversacionesPorReservaState
-
-    // Para manejo de mensajes en tiempo real
-    private val _mensajesConversacionActual = MutableStateFlow<List<MensajeResponse>>(emptyList())
-    val mensajesConversacionActual: StateFlow<List<MensajeResponse>> = _mensajesConversacionActual
-
-    private val _conversacionActual = MutableStateFlow<ConversacionResponse?>(null)
-    val conversacionActual: StateFlow<ConversacionResponse?> = _conversacionActual
+    private val _mensajes = MutableStateFlow<List<MensajeChat>>(emptyList())
+    val mensajes: StateFlow<List<MensajeChat>> = _mensajes.asStateFlow()
 
     init {
-        cargarConversaciones()
-        cargarMensajesNoLeidos()
+        loadConversaciones()
     }
 
-    fun cargarConversaciones() {
+    fun loadConversaciones() {
         viewModelScope.launch {
-            repository.getConversaciones().collect { result ->
-                _conversacionesState.value = result
-            }
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+
+            chatRepository.getConversaciones()
+                .onSuccess { conversaciones ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        conversaciones = conversaciones
+                    )
+                }
+                .onFailure { exception ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = exception.message
+                    )
+                }
         }
     }
 
-    fun cargarMensajesNoLeidos() {
+    fun abrirConversacion(conversacionId: Long) {
         viewModelScope.launch {
-            repository.getMensajesNoLeidos().collect { result ->
-                _mensajesNoLeidosState.value = result
-            }
+            _uiState.value = _uiState.value.copy(isLoadingMensajes = true)
+
+            // Cargar detalles de la conversación
+            chatRepository.getConversacion(conversacionId)
+                .onSuccess { conversacion ->
+                    _conversacionActual.value = conversacion
+                    // Marcar como leído
+                    marcarComoLeido(conversacionId)
+                }
+                .onFailure { exception ->
+                    _uiState.value = _uiState.value.copy(error = exception.message)
+                }
+
+            // Cargar mensajes
+            loadMensajes(conversacionId)
         }
     }
 
-    fun enviarMensaje(conversacionId: Long, contenido: String, tipoMensaje: TipoMensaje = TipoMensaje.TEXTO) {
+    private fun loadMensajes(conversacionId: Long, pagina: Int = 0) {
         viewModelScope.launch {
-            _enviarMensajeState.value = Result.Loading
-            val request = MensajeRequest(
+            chatRepository.getMensajes(conversacionId, pagina)
+                .onSuccess { nuevosMensajes ->
+                    if (pagina == 0) {
+                        _mensajes.value = nuevosMensajes
+                    } else {
+                        // Agregar mensajes más antiguos al principio
+                        _mensajes.value = nuevosMensajes + _mensajes.value
+                    }
+
+                    _uiState.value = _uiState.value.copy(
+                        isLoadingMensajes = false,
+                        puedeCargarMasMensajes = nuevosMensajes.size >= 20
+                    )
+                }
+                .onFailure { exception ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoadingMensajes = false,
+                        error = exception.message
+                    )
+                }
+        }
+    }
+
+    fun enviarMensaje(mensaje: String) {
+        val conversacionId = _conversacionActual.value?.id ?: return
+        if (mensaje.isBlank()) return
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isEnviandoMensaje = true)
+
+            val request = EnviarMensajeRequest(
                 conversacionId = conversacionId,
-                contenido = contenido,
-                tipoMensaje = tipoMensaje
+                mensaje = mensaje.trim(),
+                tipo = TipoMensaje.TEXTO
             )
-            
-            repository.enviarMensaje(request).collect { result ->
-                _enviarMensajeState.value = result
-                
-                // Si el mensaje se envió correctamente, agregarlo a la lista local
-                if (result is Result.Success) {
-                    val mensajesActuales = _mensajesConversacionActual.value.toMutableList()
-                    mensajesActuales.add(result.data)
-                    _mensajesConversacionActual.value = mensajesActuales
-                    
-                    // Recargar conversaciones para actualizar último mensaje
-                    cargarConversaciones()
+
+            chatRepository.enviarMensaje(request)
+                .onSuccess { nuevoMensaje ->
+                    // Agregar el nuevo mensaje a la lista
+                    _mensajes.value = _mensajes.value + nuevoMensaje
+
+                    // Actualizar la conversación actual
+                    _conversacionActual.value = _conversacionActual.value?.let { conversacion ->
+                        conversacion.copy(
+                            ultimoMensaje = nuevoMensaje,
+                            fechaUltimoMensaje = nuevoMensaje.fechaEnvio,
+                            mensajesRecientes = conversacion.mensajesRecientes ?: emptyList()
+                        )
+                    }
+
+                    _uiState.value = _uiState.value.copy(
+                        isEnviandoMensaje = false,
+                        successMessage = null
+                    )
+
+                    // Recargar lista de conversaciones para actualizar el último mensaje
+                    loadConversaciones()
                 }
-            }
-        }
-    }
-
-    fun iniciarConversacionConEmprendedor(emprendedorId: Long, mensaje: String) {
-        viewModelScope.launch {
-            _iniciarConversacionState.value = Result.Loading
-            val request = IniciarConversacionCarritoRequest(
-                emprendedorId = emprendedorId,
-                mensaje = mensaje
-            )
-            
-            repository.iniciarConversacionCarrito(request).collect { result ->
-                _iniciarConversacionState.value = result
-                
-                // Si se creó la conversación, recargar lista de conversaciones
-                if (result is Result.Success) {
-                    cargarConversaciones()
-                    _conversacionActual.value = result.data
+                .onFailure { exception ->
+                    _uiState.value = _uiState.value.copy(
+                        isEnviandoMensaje = false,
+                        error = exception.message
+                    )
                 }
-            }
         }
     }
 
-    fun enviarMensajeRapido(reservaCarritoId: Long, mensaje: String) {
+    // Método corregido para iniciar conversación
+    fun iniciarConversacion(emprendedorId: Long, mensajeInicial: String, reservaId: Long? = null) {
         viewModelScope.launch {
-            _mensajeRapidoState.value = Result.Loading
-            val request = MensajeRapidoRequest(mensaje = mensaje)
-            
-            repository.enviarMensajeRapido(reservaCarritoId, request).collect { result ->
-                _mensajeRapidoState.value = result
-                
-                // Si se enviaron mensajes, actualizarlos en la conversación actual
-                if (result is Result.Success) {
-                    _mensajesConversacionActual.value = result.data
-                    cargarConversaciones()
+            _uiState.value = _uiState.value.copy(isLoading = true)
+
+            // Primero iniciar la conversación
+            chatRepository.iniciarConversacion(emprendedorId, reservaId)
+                .onSuccess { nuevaConversacion ->
+                    _conversacionActual.value = nuevaConversacion
+
+                    // Luego enviar el mensaje inicial si no está vacío
+                    if (mensajeInicial.isNotBlank()) {
+                        val request = EnviarMensajeRequest(
+                            conversacionId = nuevaConversacion.id,
+                            mensaje = mensajeInicial.trim(),
+                            tipo = TipoMensaje.TEXTO
+                        )
+
+                        chatRepository.enviarMensaje(request)
+                            .onSuccess { mensajeEnviado ->
+                                _mensajes.value = listOf(mensajeEnviado)
+                                _uiState.value = _uiState.value.copy(
+                                    isLoading = false,
+                                    conversacionCreada = nuevaConversacion,
+                                    successMessage = "Conversación iniciada"
+                                )
+                            }
+                            .onFailure { exception ->
+                                // Aunque falló el mensaje, la conversación se creó
+                                _mensajes.value = emptyList()
+                                _uiState.value = _uiState.value.copy(
+                                    isLoading = false,
+                                    conversacionCreada = nuevaConversacion,
+                                    error = "Conversación creada pero error al enviar mensaje: ${exception.message}"
+                                )
+                            }
+                    } else {
+                        // Solo crear conversación sin mensaje inicial
+                        _mensajes.value = emptyList()
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            conversacionCreada = nuevaConversacion,
+                            successMessage = "Conversación iniciada"
+                        )
+                    }
+
+                    // Recargar lista de conversaciones
+                    loadConversaciones()
                 }
-            }
+                .onFailure { exception ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = exception.message
+                    )
+                }
         }
     }
 
-    fun cargarConversacionesPorReserva(reservaCarritoId: Long) {
+    fun cargarMasMensajes() {
+        val conversacionId = _conversacionActual.value?.id ?: return
+        val paginaActual = (_mensajes.value.size / 20)
+
+        if (_uiState.value.puedeCargarMasMensajes && !_uiState.value.isLoadingMensajes) {
+            loadMensajes(conversacionId, paginaActual)
+        }
+    }
+
+    private fun marcarComoLeido(conversacionId: Long) {
         viewModelScope.launch {
-            repository.getConversacionesPorReserva(reservaCarritoId).collect { result ->
-                _conversacionesPorReservaState.value = result
-            }
+            chatRepository.marcarComoLeido(conversacionId)
+                .onSuccess {
+                    // Actualizar la conversación en la lista
+                    val conversacionesActualizadas = _uiState.value.conversaciones.map { conversacion ->
+                        if (conversacion.id == conversacionId) {
+                            conversacion.copy(mensajesNoLeidos = 0)
+                        } else {
+                            conversacion
+                        }
+                    }
+
+                    _uiState.value = _uiState.value.copy(conversaciones = conversacionesActualizadas)
+                }
         }
     }
 
-    fun seleccionarConversacion(conversacion: ConversacionResponse) {
-        _conversacionActual.value = conversacion
-        // Aquí podrías cargar los mensajes de la conversación si tuvieras un endpoint para eso
-        // Por ahora, inicializamos con el último mensaje
-        _mensajesConversacionActual.value = if (conversacion.ultimoMensaje != null) {
-            listOf(conversacion.ultimoMensaje)
-        } else {
-            emptyList()
+    fun cerrarConversacion() {
+        val conversacionId = _conversacionActual.value?.id ?: return
+
+        viewModelScope.launch {
+            chatRepository.cerrarConversacion(conversacionId)
+                .onSuccess { conversacionCerrada ->
+                    _conversacionActual.value = conversacionCerrada
+                    loadConversaciones() // Recargar lista
+                }
         }
     }
 
     fun limpiarConversacionActual() {
         _conversacionActual.value = null
-        _mensajesConversacionActual.value = emptyList()
+        _mensajes.value = emptyList()
+        _uiState.value = _uiState.value.copy(
+            conversacionCreada = null,
+            isLoadingMensajes = false,
+            puedeCargarMasMensajes = false
+        )
     }
 
-    fun clearStates() {
-        _enviarMensajeState.value = null
-        _iniciarConversacionState.value = null
-        _mensajeRapidoState.value = null
-        _conversacionesPorReservaState.value = null
-    }
-
-    // Función para simular mensajes recibidos (en una implementación real, esto vendría de WebSockets o polling)
-    fun agregarMensajeRecibido(mensaje: MensajeResponse) {
-        val mensajesActuales = _mensajesConversacionActual.value.toMutableList()
-        mensajesActuales.add(mensaje)
-        _mensajesConversacionActual.value = mensajesActuales
-        
-        // Actualizar contador de no leídos
-        cargarMensajesNoLeidos()
-        cargarConversaciones()
-    }
-
-    // Función para marcar mensajes como leídos (simular)
-    fun marcarMensajesComoLeidos(conversacionId: Long) {
-        // En una implementación real, esto haría una llamada al backend
-        // Por ahora, solo recargamos los datos
-        cargarMensajesNoLeidos()
-        cargarConversaciones()
+    fun clearMessages() {
+        _uiState.value = _uiState.value.copy(error = null, successMessage = null)
     }
 }
+
+data class ChatUiState(
+    val isLoading: Boolean = false,
+    val isLoadingMensajes: Boolean = false,
+    val isEnviandoMensaje: Boolean = false,
+    val conversaciones: List<Conversacion> = emptyList(),
+    val conversacionCreada: Conversacion? = null,
+    val puedeCargarMasMensajes: Boolean = false,
+    val error: String? = null,
+    val successMessage: String? = null
+)

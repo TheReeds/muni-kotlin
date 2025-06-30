@@ -1,112 +1,95 @@
 package com.capachica.turismokotlin.data.repository
 
-import com.capachica.turismokotlin.data.api.ApiService
-import com.capachica.turismokotlin.data.local.SessionManager
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.edit
 import com.capachica.turismokotlin.data.model.AuthResponse
 import com.capachica.turismokotlin.data.model.LoginRequest
 import com.capachica.turismokotlin.data.model.RegisterRequest
+import com.capachica.turismokotlin.network.api.AuthApiService
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.first
-import java.net.ConnectException
-import java.net.SocketTimeoutException
-import java.net.UnknownHostException
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+import javax.inject.Singleton
 
-sealed class Result<out T> {
-    data class Success<out T>(val data: T) : Result<T>()
-    data class Error(val message: String) : Result<Nothing>()
-    object Loading : Result<Nothing>()
-}
-
-class AuthRepository(
-    private val apiService: ApiService,
-    private val sessionManager: SessionManager
+@Singleton
+class AuthRepository @Inject constructor(
+    private val authApiService: AuthApiService,
+    private val dataStore: DataStore<Preferences>
 ) {
-    suspend fun login(username: String, password: String): Flow<Result<AuthResponse>> = flow {
-        emit(Result.Loading)
-        try {
-            val response = apiService.login(LoginRequest(username, password))
+    private val TOKEN_KEY = stringPreferencesKey("auth_token")
+    private val USERNAME_KEY = stringPreferencesKey("username")
+    private val ROLES_KEY = stringPreferencesKey("user_roles")
+
+    val authToken: Flow<String?> = dataStore.data.map { preferences ->
+        preferences[TOKEN_KEY]
+    }
+
+    val userRoles: Flow<List<String>> = dataStore.data.map { preferences ->
+        val rolesString = preferences[ROLES_KEY] ?: ""
+        if (rolesString.isEmpty()) emptyList() else rolesString.split(",")
+    }
+
+    suspend fun login(username: String, password: String): Result<AuthResponse> {
+        return try {
+            val response = authApiService.login(LoginRequest(username, password))
             if (response.isSuccessful) {
                 response.body()?.let { authResponse ->
-                    // Guardar datos de sesión
-                    sessionManager.saveAuthToken(authResponse.token)
-                    sessionManager.saveUserId(authResponse.id)
-                    sessionManager.saveUsername(authResponse.username)
-                    sessionManager.saveUserRoles(authResponse.roles)
-
-                    emit(Result.Success(authResponse))
-                } ?: emit(Result.Error("Respuesta vacía del servidor"))
+                    saveAuthData(authResponse)
+                    Result.success(authResponse)
+                } ?: Result.failure(Exception("No auth data received"))
             } else {
-                when (response.code()) {
-                    401 -> emit(Result.Error("Credenciales incorrectas"))
-                    404 -> emit(Result.Error("Usuario no encontrado"))
-                    else -> emit(Result.Error("Error de autenticación: ${response.code()}"))
-                }
+                Result.failure(Exception("Login failed: ${response.message()}"))
             }
         } catch (e: Exception) {
-            when (e) {
-                is ConnectException, is UnknownHostException ->
-                    emit(Result.Error("No se pudo conectar al servidor. Verifica tu conexión a internet."))
-                is SocketTimeoutException ->
-                    emit(Result.Error("La conexión al servidor ha excedido el tiempo de espera."))
-                else ->
-                    emit(Result.Error("Error en la solicitud: ${e.message ?: "Error desconocido"}"))
-            }
+            Result.failure(e)
         }
     }
 
-    suspend fun register(request: RegisterRequest): Flow<Result<AuthResponse>> = flow {
-        emit(Result.Loading)
-        try {
-            val response = apiService.register(request)
+    suspend fun register(
+        nombre: String,
+        apellido: String,
+        username: String,
+        email: String,
+        password: String,
+        roles: List<String> = listOf("ROLE_USER")
+    ): Result<AuthResponse> {
+        return try {
+            val request = RegisterRequest(nombre, apellido, username, email, password, roles)
+            val response = authApiService.register(request)
             if (response.isSuccessful) {
                 response.body()?.let { authResponse ->
-                    // Guardar datos de sesión
-                    sessionManager.saveAuthToken(authResponse.token)
-                    sessionManager.saveUserId(authResponse.id)
-                    sessionManager.saveUsername(authResponse.username)
-                    sessionManager.saveUserRoles(authResponse.roles)
-
-                    emit(Result.Success(authResponse))
-                } ?: emit(Result.Error("Respuesta vacía del servidor"))
+                    saveAuthData(authResponse)
+                    Result.success(authResponse)
+                } ?: Result.failure(Exception("No auth data received"))
             } else {
-                when (response.code()) {
-                    400 -> emit(Result.Error("Datos de registro inválidos"))
-                    409 -> emit(Result.Error("El nombre de usuario o email ya está en uso"))
-                    else -> emit(Result.Error("Error en el registro: ${response.code()}"))
-                }
+                Result.failure(Exception("Registration failed: ${response.message()}"))
             }
         } catch (e: Exception) {
-            when (e) {
-                is ConnectException, is UnknownHostException ->
-                    emit(Result.Error("No se pudo conectar al servidor. Verifica tu conexión a internet."))
-                is SocketTimeoutException ->
-                    emit(Result.Error("La conexión al servidor ha excedido el tiempo de espera."))
-                else ->
-                    emit(Result.Error("Error en la solicitud: ${e.message ?: "Error desconocido"}"))
-            }
+            Result.failure(e)
+        }
+    }
+
+    private suspend fun saveAuthData(authResponse: AuthResponse) {
+        dataStore.edit { preferences ->
+            preferences[TOKEN_KEY] = authResponse.token
+            preferences[USERNAME_KEY] = authResponse.username
+            preferences[ROLES_KEY] = authResponse.roles.joinToString(",")
         }
     }
 
     suspend fun logout() {
-        sessionManager.clearSession()
+        dataStore.edit { preferences ->
+            preferences.clear()
+        }
     }
 
-    suspend fun isUserLoggedIn(): Flow<Boolean> = flow {
-        // Si hay un token almacenado, consideramos que el usuario está logueado
-        try {
-            val token = sessionManager.getAuthToken().first()
-            emit(token != null)
-        } catch (e: Exception) {
-            emit(false)
-        }
+    fun hasRole(role: String): Flow<Boolean> = userRoles.map { roles ->
+        roles.contains(role)
     }
-    
-    suspend fun getUserRoles(): Flow<List<String>> = flow {
-        try {
-            emit(sessionManager.getUserRoles().first())
-        } catch (e: Exception) {
-            emit(emptyList())
-        }
-    }
+
+    fun isAdmin(): Flow<Boolean> = hasRole("ROLE_ADMIN")
+    fun isEmprendedor(): Flow<Boolean> = hasRole("ROLE_EMPRENDEDOR")
+    fun isMunicipalidad(): Flow<Boolean> = hasRole("ROLE_MUNICIPALIDAD")
 }

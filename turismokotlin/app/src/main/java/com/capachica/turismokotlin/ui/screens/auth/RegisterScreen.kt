@@ -1,36 +1,31 @@
 package com.capachica.turismokotlin.ui.screens.auth
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.capachica.turismokotlin.data.model.RegisterRequest
-import com.capachica.turismokotlin.data.repository.Result
-import com.capachica.turismokotlin.ui.components.LoadingScreen
-import com.capachica.turismokotlin.ui.components.TurismoAppBar
-import com.capachica.turismokotlin.ui.components.TurismoTextField
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.capachica.turismokotlin.ui.viewmodel.AuthViewModel
-import com.capachica.turismokotlin.ui.viewmodel.ViewModelFactory
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
     onNavigateToLogin: () -> Unit,
     onRegisterSuccess: () -> Unit,
-    factory: ViewModelFactory
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
-    val viewModel: AuthViewModel = viewModel(factory = factory)
-    val registerState by viewModel.registerState.collectAsState()
-    val isLoggedIn by viewModel.isLoggedIn.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    val isLoggedIn by viewModel.isLoggedIn.collectAsState(initial = false)
 
     var nombre by remember { mutableStateOf("") }
     var apellido by remember { mutableStateOf("") }
@@ -38,230 +33,196 @@ fun RegisterScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-    var selectedRole by remember { mutableStateOf("") }
+    var selectedRole by remember { mutableStateOf("ROLE_USER") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
 
-    var nombreError by remember { mutableStateOf(false) }
-    var apellidoError by remember { mutableStateOf(false) }
-    var usernameError by remember { mutableStateOf(false) }
-    var emailError by remember { mutableStateOf(false) }
-    var passwordError by remember { mutableStateOf(false) }
-    var confirmPasswordError by remember { mutableStateOf(false) }
-    var roleError by remember { mutableStateOf(false) }
+    val roles = listOf(
+        "ROLE_USER" to "Usuario",
+        "ROLE_EMPRENDEDOR" to "Emprendedor",
+        "ROLE_MUNICIPALIDAD" to "Municipalidad"
+    )
 
-    val scope = rememberCoroutineScope()
-
-    LaunchedEffect(key1 = isLoggedIn) {
+    LaunchedEffect(isLoggedIn) {
         if (isLoggedIn) {
             onRegisterSuccess()
         }
     }
 
-    Scaffold(
-        topBar = {
-            TurismoAppBar(
-                title = "Registro",
-                onBackClick = onNavigateToLogin
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Crear Cuenta",
+            style = MaterialTheme.typography.headlineLarge,
+            modifier = Modifier.padding(vertical = 24.dp)
+        )
+
+        Row(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = nombre,
+                onValueChange = { nombre = it },
+                label = { Text("Nombre") },
+                modifier = Modifier.weight(1f),
+                singleLine = true
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            OutlinedTextField(
+                value = apellido,
+                onValueChange = { apellido = it },
+                label = { Text("Apellido") },
+                modifier = Modifier.weight(1f),
+                singleLine = true
             )
         }
-    ) { paddingValues ->
-        if (registerState is Result.Loading) {
-            LoadingScreen()
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp)
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = username,
+            onValueChange = { username = it },
+            label = { Text("Usuario") },
+            leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Email") },
+            leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Selector de rol
+        ExposedDropdownMenuBox(
+            expanded = false,
+            onExpandedChange = { }
+        ) {
+            OutlinedTextField(
+                value = roles.find { it.first == selectedRole }?.second ?: "Usuario",
+                onValueChange = { },
+                readOnly = true,
+                label = { Text("Tipo de cuenta") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = false) },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            ExposedDropdownMenu(
+                expanded = false,
+                onDismissRequest = { }
+            ) {
+                roles.forEach { (roleKey, roleLabel) ->
+                    DropdownMenuItem(
+                        text = { Text(roleLabel) },
+                        onClick = { selectedRole = roleKey }
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Contraseña") },
+            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+            trailingIcon = {
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(
+                        imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                        contentDescription = null
+                    )
+                }
+            },
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = { Text("Confirmar Contraseña") },
+            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+            trailingIcon = {
+                IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                    Icon(
+                        imageVector = if (confirmPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                        contentDescription = null
+                    )
+                }
+            },
+            visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            isError = password.isNotEmpty() && confirmPassword.isNotEmpty() && password != confirmPassword
+        )
+
+        if (password.isNotEmpty() && confirmPassword.isNotEmpty() && password != confirmPassword) {
+            Text(
+                text = "Las contraseñas no coinciden",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = {
+                viewModel.register(
+                    nombre = nombre,
+                    apellido = apellido,
+                    username = username,
+                    email = email,
+                    password = password,
+                    roles = listOf(selectedRole)
+                )
+            },
+            enabled = nombre.isNotBlank() && apellido.isNotBlank() && username.isNotBlank() &&
+                    email.isNotBlank() && password.isNotBlank() && password == confirmPassword &&
+                    !uiState.isLoading,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.size(20.dp))
+            } else {
+                Text("Crear Cuenta")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TextButton(onClick = onNavigateToLogin) {
+            Text("¿Ya tienes cuenta? Inicia sesión")
+        }
+
+        uiState.error?.let { error ->
+            Spacer(modifier = Modifier.height(16.dp))
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
             ) {
                 Text(
-                    text = "Crear Cuenta",
-                    style = MaterialTheme.typography.headlineSmall,
-                    textAlign = TextAlign.Center
+                    text = error,
+                    modifier = Modifier.padding(16.dp),
+                    color = MaterialTheme.colorScheme.onErrorContainer
                 )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                TurismoTextField(
-                    value = nombre,
-                    onValueChange = {
-                        nombre = it
-                        nombreError = false
-                    },
-                    label = "Nombre",
-                    isError = nombreError,
-                    errorMessage = "Ingrese su nombre",
-                    leadingIcon = Icons.Default.Person
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                TurismoTextField(
-                    value = apellido,
-                    onValueChange = {
-                        apellido = it
-                        apellidoError = false
-                    },
-                    label = "Apellido",
-                    isError = apellidoError,
-                    errorMessage = "Ingrese su apellido",
-                    leadingIcon = Icons.Default.Person
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                TurismoTextField(
-                    value = username,
-                    onValueChange = {
-                        username = it
-                        usernameError = false
-                    },
-                    label = "Nombre de usuario",
-                    isError = usernameError,
-                    errorMessage = "Ingrese un nombre de usuario válido",
-                    leadingIcon = Icons.Default.AccountCircle
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                TurismoTextField(
-                    value = email,
-                    onValueChange = {
-                        email = it
-                        emailError = false
-                    },
-                    label = "Correo electrónico",
-                    isError = emailError,
-                    errorMessage = "Ingrese un correo electrónico válido",
-                    leadingIcon = Icons.Default.Email
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                TurismoTextField(
-                    value = password,
-                    onValueChange = {
-                        password = it
-                        passwordError = false
-                    },
-                    label = "Contraseña",
-                    isPassword = true,
-                    isError = passwordError,
-                    errorMessage = "Ingrese una contraseña válida (mínimo 6 caracteres)",
-                    leadingIcon = Icons.Default.Lock
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                TurismoTextField(
-                    value = confirmPassword,
-                    onValueChange = {
-                        confirmPassword = it
-                        confirmPasswordError = false
-                    },
-                    label = "Confirmar contraseña",
-                    isPassword = true,
-                    isError = confirmPasswordError,
-                    errorMessage = "Las contraseñas no coinciden",
-                    leadingIcon = Icons.Default.Lock
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Selección de rol
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        text = "Seleccione su rol",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-
-                    if (roleError) {
-                        Text(
-                            text = "Seleccione un rol",
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-
-                    val roles = listOf(
-                        "Municipalidad" to "municipalidad",
-                        "Emprendedor" to "emprendedor",
-                        "Usuario" to "user"
-                    )
-
-                    roles.forEach { (label, value) ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = selectedRole == value,
-                                onClick = {
-                                    selectedRole = value
-                                    roleError = false
-                                }
-                            )
-                            Text(
-                                text = label,
-                                modifier = Modifier.padding(start = 8.dp)
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                if (registerState is Result.Error) {
-                    Text(
-                        text = (registerState as Result.Error).message,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-
-                Button(
-                    onClick = {
-                        // Validación básica
-                        nombreError = nombre.isBlank()
-                        apellidoError = apellido.isBlank()
-                        usernameError = username.isBlank()
-                        emailError = email.isBlank() || !email.contains("@")
-                        passwordError = password.length < 6
-                        confirmPasswordError = password != confirmPassword
-                        roleError = selectedRole.isBlank()
-
-                        if (!nombreError && !apellidoError && !usernameError &&
-                            !emailError && !passwordError && !confirmPasswordError && !roleError) {
-
-                            val registerRequest = RegisterRequest(
-                                nombre = nombre,
-                                apellido = apellido,
-                                username = username,
-                                email = email,
-                                password = password,
-                                roles = listOf(selectedRole)
-                            )
-
-                            scope.launch {
-                                viewModel.register(registerRequest)
-                            }
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Registrarse")
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                TextButton(onClick = onNavigateToLogin) {
-                    Text("¿Ya tienes una cuenta? Inicia sesión")
-                }
             }
         }
     }
