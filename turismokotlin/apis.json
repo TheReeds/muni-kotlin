@@ -1,0 +1,5906 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OpenAPI definition",
+    "version": "v0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Generated server url"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Ubicaciones",
+      "description": "API para gestión de ubicaciones y mapas"
+    },
+    {
+      "name": "Reservas desde Carrito",
+      "description": "API para gestión de reservas creadas desde el carrito"
+    },
+    {
+      "name": "Carrito",
+      "description": "API para gestión del carrito de compras"
+    },
+    {
+      "name": "Chat",
+      "description": "API para sistema de chat entre usuarios y emprendedores"
+    },
+    {
+      "name": "Pagos",
+      "description": "API para gestión de pagos de reservas"
+    },
+    {
+      "name": "Planes Turísticos",
+      "description": "API para gestión de planes turísticos"
+    },
+    {
+      "name": "Servicios Turísticos",
+      "description": "API para gestión de servicios turísticos"
+    },
+    {
+      "name": "Reservas",
+      "description": "API para gestión de reservas de planes turísticos"
+    }
+  ],
+  "paths": {
+    "/api/usuarios/{usuarioId}/resetear-roles": {
+      "put": {
+        "tags": [
+          "usuario-controller"
+        ],
+        "operationId": "resetearRolesUsuario",
+        "parameters": [
+          {
+            "name": "usuarioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/{usuarioId}/quitar-rol/{rol}": {
+      "put": {
+        "tags": [
+          "usuario-controller"
+        ],
+        "operationId": "quitarRolAUsuario",
+        "parameters": [
+          {
+            "name": "usuarioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "rol",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/{usuarioId}/cambiar-emprendedor/{emprendedorId}": {
+      "put": {
+        "tags": [
+          "usuario-controller"
+        ],
+        "operationId": "cambiarUsuarioDeEmprendedor",
+        "parameters": [
+          {
+            "name": "usuarioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "emprendedorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/{usuarioId}/asignar-rol/{rol}": {
+      "put": {
+        "tags": [
+          "usuario-controller"
+        ],
+        "operationId": "asignarRolAUsuario",
+        "parameters": [
+          {
+            "name": "usuarioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "rol",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/{usuarioId}/asignar-emprendedor/{emprendedorId}": {
+      "put": {
+        "tags": [
+          "usuario-controller"
+        ],
+        "operationId": "asignarUsuarioAEmprendedor",
+        "parameters": [
+          {
+            "name": "usuarioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "emprendedorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ubicaciones/servicio/{servicioId}": {
+      "put": {
+        "tags": [
+          "Ubicaciones"
+        ],
+        "summary": "Actualizar ubicación de servicio turístico",
+        "operationId": "actualizarUbicacionServicio",
+        "parameters": [
+          {
+            "name": "servicioId",
+            "in": "path",
+            "description": "ID del servicio",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UbicacionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UbicacionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ubicaciones/emprendedor/{emprendedorId}": {
+      "put": {
+        "tags": [
+          "Ubicaciones"
+        ],
+        "summary": "Actualizar ubicación de emprendedor",
+        "operationId": "actualizarUbicacionEmprendedor",
+        "parameters": [
+          {
+            "name": "emprendedorId",
+            "in": "path",
+            "description": "ID del emprendedor",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UbicacionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UbicacionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/servicios/{id}": {
+      "get": {
+        "tags": [
+          "Servicios Turísticos"
+        ],
+        "summary": "Obtener servicio turístico por ID",
+        "operationId": "getServicioById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID del servicio turístico",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServicioTuristicoResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Servicios Turísticos"
+        ],
+        "summary": "Actualizar servicio turístico",
+        "operationId": "updateServicio",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID del servicio",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServicioTuristicoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServicioTuristicoResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Servicios Turísticos"
+        ],
+        "summary": "Eliminar servicio turístico",
+        "operationId": "deleteServicio",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID del servicio",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/planes/{id}": {
+      "get": {
+        "tags": [
+          "Planes Turísticos"
+        ],
+        "summary": "Obtener plan turístico por ID",
+        "operationId": "getPlanById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID del plan turístico",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanTuristicoResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Planes Turísticos"
+        ],
+        "summary": "Actualizar plan turístico",
+        "operationId": "updatePlan",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID del plan",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanTuristicoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanTuristicoResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Planes Turísticos"
+        ],
+        "summary": "Eliminar plan turístico",
+        "operationId": "deletePlan",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID del plan",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/municipalidades/{id}": {
+      "get": {
+        "tags": [
+          "municipalidad-controller"
+        ],
+        "operationId": "getMunicipalidadById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MunicipalidadResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "municipalidad-controller"
+        ],
+        "operationId": "updateMunicipalidad",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MunicipalidadRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MunicipalidadResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "municipalidad-controller"
+        ],
+        "operationId": "deleteMunicipalidad",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/emprendedores/{id}": {
+      "get": {
+        "tags": [
+          "emprendedor-controller"
+        ],
+        "operationId": "getEmprendedorById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmprendedorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "emprendedor-controller"
+        ],
+        "operationId": "updateEmprendedor",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmprendedorRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmprendedorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "emprendedor-controller"
+        ],
+        "operationId": "deleteEmprendedor",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/categorias/{id}": {
+      "get": {
+        "tags": [
+          "categoria-controller"
+        ],
+        "operationId": "getCategoriaById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoriaResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "categoria-controller"
+        ],
+        "operationId": "updateCategoria",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoriaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoriaResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "categoria-controller"
+        ],
+        "operationId": "deleteCategoria",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/carrito/item/{itemId}": {
+      "put": {
+        "tags": [
+          "Carrito"
+        ],
+        "summary": "Actualizar cantidad de un item",
+        "operationId": "actualizarCantidad",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "description": "ID del item",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "cantidad",
+            "in": "query",
+            "description": "Nueva cantidad",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CarritoResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Carrito"
+        ],
+        "summary": "Eliminar item del carrito",
+        "operationId": "eliminarItem",
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "description": "ID del item",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CarritoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/servicios": {
+      "get": {
+        "tags": [
+          "Servicios Turísticos"
+        ],
+        "summary": "Obtener todos los servicios turísticos",
+        "operationId": "getAllServicios",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServicioTuristicoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Servicios Turísticos"
+        ],
+        "summary": "Crear nuevo servicio turístico",
+        "operationId": "createServicio",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServicioTuristicoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServicioTuristicoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas": {
+      "get": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Obtener todas las reservas (solo admin)",
+        "operationId": "getAllReservas",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReservaResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Crear nueva reserva",
+        "operationId": "createReserva",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReservaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservaResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas-carrito/crear": {
+      "post": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Crear reserva desde carrito",
+        "operationId": "crearReservaDesdeCarrito",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReservaCarritoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservaCarritoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/planes": {
+      "get": {
+        "tags": [
+          "Planes Turísticos"
+        ],
+        "summary": "Obtener todos los planes turísticos",
+        "operationId": "getAllPlanes",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlanTuristicoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Planes Turísticos"
+        ],
+        "summary": "Crear nuevo plan turístico",
+        "operationId": "createPlan",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanTuristicoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanTuristicoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pagos": {
+      "get": {
+        "tags": [
+          "Pagos"
+        ],
+        "summary": "Obtener todos los pagos (solo admin)",
+        "operationId": "getAllPagos",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PagoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Pagos"
+        ],
+        "summary": "Registrar nuevo pago",
+        "operationId": "registrarPago",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PagoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/municipalidades": {
+      "get": {
+        "tags": [
+          "municipalidad-controller"
+        ],
+        "operationId": "getAllMunicipalidades",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MunicipalidadResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "municipalidad-controller"
+        ],
+        "operationId": "createMunicipalidad",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MunicipalidadRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MunicipalidadResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/emprendedores": {
+      "get": {
+        "tags": [
+          "emprendedor-controller"
+        ],
+        "operationId": "getAllEmprendedores",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EmprendedorResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "emprendedor-controller"
+        ],
+        "operationId": "createEmprendedor",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmprendedorRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmprendedorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/reserva-carrito/{reservaCarritoId}/mensaje-rapido": {
+      "post": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Enviar mensaje rápido a todos los emprendedores de una reserva",
+        "operationId": "enviarMensajeRapidoAReserva",
+        "parameters": [
+          {
+            "name": "reservaCarritoId",
+            "in": "path",
+            "description": "ID de la reserva carrito",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "mensaje",
+            "in": "query",
+            "description": "Mensaje a enviar",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatMensajeResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/mensaje": {
+      "post": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Enviar mensaje en conversación",
+        "operationId": "enviarMensaje",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatMensajeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatMensajeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/conversacion/iniciar": {
+      "post": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Iniciar conversación con emprendedor",
+        "operationId": "iniciarConversacion",
+        "parameters": [
+          {
+            "name": "emprendedorId",
+            "in": "query",
+            "description": "ID del emprendedor",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "reservaId",
+            "in": "query",
+            "description": "ID de la reserva (opcional)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatConversacionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/conversacion/iniciar-carrito": {
+      "post": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Iniciar conversación con emprendedor desde reserva carrito",
+        "operationId": "iniciarConversacionConReservaCarrito",
+        "parameters": [
+          {
+            "name": "emprendedorId",
+            "in": "query",
+            "description": "ID del emprendedor",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "reservaCarritoId",
+            "in": "query",
+            "description": "ID de la reserva carrito (opcional)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatConversacionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/categorias": {
+      "get": {
+        "tags": [
+          "categoria-controller"
+        ],
+        "operationId": "getAllCategorias",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CategoriaResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "categoria-controller"
+        ],
+        "operationId": "createCategoria",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoriaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoriaResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/carrito/agregar": {
+      "post": {
+        "tags": [
+          "Carrito"
+        ],
+        "summary": "Agregar item al carrito",
+        "operationId": "agregarItem",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CarritoItemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CarritoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "tags": [
+          "auth-controller"
+        ],
+        "operationId": "register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "auth-controller"
+        ],
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/servicios/{id}/estado": {
+      "patch": {
+        "tags": [
+          "Servicios Turísticos"
+        ],
+        "summary": "Cambiar estado del servicio",
+        "operationId": "cambiarEstado",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID del servicio",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "estado",
+            "in": "query",
+            "description": "Nuevo estado",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ACTIVO",
+                "INACTIVO",
+                "AGOTADO",
+                "MANTENIMIENTO"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServicioTuristicoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas/{id}/confirmar": {
+      "patch": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Confirmar reserva",
+        "operationId": "confirmarReserva",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID de la reserva",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservaResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas/{id}/completar": {
+      "patch": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Completar reserva",
+        "operationId": "completarReserva",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID de la reserva",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservaResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas/{id}/cancelar": {
+      "patch": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Cancelar reserva",
+        "operationId": "cancelarReserva",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID de la reserva",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "motivo",
+            "in": "query",
+            "description": "Motivo de cancelación",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservaResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas-carrito/{id}/confirmar": {
+      "patch": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Confirmar reserva",
+        "operationId": "confirmarReserva_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID de la reserva",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservaCarritoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas-carrito/{id}/completar": {
+      "patch": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Marcar reserva como completada",
+        "operationId": "completarReserva_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID de la reserva",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservaCarritoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas-carrito/{id}/cancelar": {
+      "patch": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Cancelar reserva con motivo",
+        "operationId": "cancelarReserva_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID de la reserva",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "motivo",
+            "in": "query",
+            "description": "Motivo de cancelación",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservaCarritoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/planes/{id}/estado": {
+      "patch": {
+        "tags": [
+          "Planes Turísticos"
+        ],
+        "summary": "Cambiar estado del plan",
+        "operationId": "cambiarEstado_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID del plan",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "estado",
+            "in": "query",
+            "description": "Nuevo estado",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BORRADOR",
+                "ACTIVO",
+                "INACTIVO",
+                "AGOTADO",
+                "SUSPENDIDO"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanTuristicoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pagos/{id}/rechazar": {
+      "patch": {
+        "tags": [
+          "Pagos"
+        ],
+        "summary": "Rechazar pago",
+        "operationId": "rechazarPago",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID del pago",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "motivo",
+            "in": "query",
+            "description": "Motivo del rechazo",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pagos/{id}/confirmar": {
+      "patch": {
+        "tags": [
+          "Pagos"
+        ],
+        "summary": "Confirmar pago",
+        "operationId": "confirmarPago",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID del pago",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/conversacion/{conversacionId}/marcar-leidos": {
+      "patch": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Marcar mensajes como leídos",
+        "operationId": "marcarMensajesComoLeidos",
+        "parameters": [
+          {
+            "name": "conversacionId",
+            "in": "path",
+            "description": "ID de la conversación",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/chat/conversacion/{conversacionId}/cerrar": {
+      "patch": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Cerrar conversación",
+        "operationId": "cerrarConversacion",
+        "parameters": [
+          {
+            "name": "conversacionId",
+            "in": "path",
+            "description": "ID de la conversación",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/chat/conversacion/{conversacionId}/archivar": {
+      "patch": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Archivar conversación",
+        "operationId": "archivarConversacion",
+        "parameters": [
+          {
+            "name": "conversacionId",
+            "in": "path",
+            "description": "ID de la conversación",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/usuarios": {
+      "get": {
+        "tags": [
+          "usuario-controller"
+        ],
+        "operationId": "getAllUsuarios",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UsuarioResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/{id}": {
+      "get": {
+        "tags": [
+          "usuario-controller"
+        ],
+        "operationId": "getUsuarioById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/sin-emprendedor": {
+      "get": {
+        "tags": [
+          "usuario-controller"
+        ],
+        "operationId": "getUsuariosSinEmprendedor",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UsuarioResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/con-rol/{rol}": {
+      "get": {
+        "tags": [
+          "usuario-controller"
+        ],
+        "operationId": "getUsuariosPorRol",
+        "parameters": [
+          {
+            "name": "rol",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UsuarioResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ubicaciones/validar-coordenadas": {
+      "get": {
+        "tags": [
+          "Ubicaciones"
+        ],
+        "summary": "Validar si las coordenadas son válidas",
+        "operationId": "validarCoordenadas",
+        "parameters": [
+          {
+            "name": "latitud",
+            "in": "query",
+            "description": "Latitud a validar",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "longitud",
+            "in": "query",
+            "description": "Longitud a validar",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ubicaciones/servicios": {
+      "get": {
+        "tags": [
+          "Ubicaciones"
+        ],
+        "summary": "Obtener ubicaciones de servicios turísticos para mapa",
+        "operationId": "obtenerUbicacionesServicios",
+        "parameters": [
+          {
+            "name": "tipoServicio",
+            "in": "query",
+            "description": "Tipo de servicio (TOUR, ALOJAMIENTO, etc.)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "municipalidadId",
+            "in": "query",
+            "description": "ID de municipalidad (opcional)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "latitud",
+            "in": "query",
+            "description": "Latitud centro de búsqueda",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "longitud",
+            "in": "query",
+            "description": "Longitud centro de búsqueda",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "radio",
+            "in": "query",
+            "description": "Radio de búsqueda en km",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServicioTuristicoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ubicaciones/emprendedores": {
+      "get": {
+        "tags": [
+          "Ubicaciones"
+        ],
+        "summary": "Obtener ubicaciones de emprendedores para mostrar en mapa",
+        "operationId": "obtenerUbicacionesEmprendedores",
+        "parameters": [
+          {
+            "name": "municipalidadId",
+            "in": "query",
+            "description": "ID de municipalidad (opcional)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "latitud",
+            "in": "query",
+            "description": "Latitud centro de búsqueda",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "longitud",
+            "in": "query",
+            "description": "Longitud centro de búsqueda",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "radio",
+            "in": "query",
+            "description": "Radio de búsqueda en km",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EmprendedorResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ubicaciones/distancia": {
+      "get": {
+        "tags": [
+          "Ubicaciones"
+        ],
+        "summary": "Calcular distancia entre dos puntos",
+        "operationId": "calcularDistancia",
+        "parameters": [
+          {
+            "name": "lat1",
+            "in": "query",
+            "description": "Latitud punto 1",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "lng1",
+            "in": "query",
+            "description": "Longitud punto 1",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "lat2",
+            "in": "query",
+            "description": "Latitud punto 2",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "lng2",
+            "in": "query",
+            "description": "Longitud punto 2",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "number",
+                  "format": "double"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ubicaciones/cercanos": {
+      "get": {
+        "tags": [
+          "Ubicaciones"
+        ],
+        "summary": "Buscar emprendedores y servicios cercanos a una ubicación",
+        "operationId": "buscarCercanos",
+        "parameters": [
+          {
+            "name": "latitud",
+            "in": "query",
+            "description": "Latitud del punto de búsqueda",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "longitud",
+            "in": "query",
+            "description": "Longitud del punto de búsqueda",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "radio",
+            "in": "query",
+            "description": "Radio de búsqueda en km",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "default": 5
+            }
+          },
+          {
+            "name": "tipo",
+            "in": "query",
+            "description": "Tipo: 'emprendedores' o 'servicios'",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/servicios/tipo/{tipo}": {
+      "get": {
+        "tags": [
+          "Servicios Turísticos"
+        ],
+        "summary": "Obtener servicios por tipo",
+        "operationId": "getServiciosByTipo",
+        "parameters": [
+          {
+            "name": "tipo",
+            "in": "path",
+            "description": "Tipo de servicio",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALOJAMIENTO",
+                "TRANSPORTE",
+                "ALIMENTACION",
+                "GUIA_TURISTICO",
+                "ACTIVIDAD_RECREATIVA",
+                "TOUR",
+                "AVENTURA",
+                "CULTURAL",
+                "GASTRONOMICO",
+                "WELLNESS",
+                "OTRO"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServicioTuristicoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/servicios/search": {
+      "get": {
+        "tags": [
+          "Servicios Turísticos"
+        ],
+        "summary": "Buscar servicios por nombre o descripción",
+        "operationId": "searchServicios",
+        "parameters": [
+          {
+            "name": "termino",
+            "in": "query",
+            "description": "Término de búsqueda",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServicioTuristicoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/servicios/precio": {
+      "get": {
+        "tags": [
+          "Servicios Turísticos"
+        ],
+        "summary": "Obtener servicios por rango de precio",
+        "operationId": "getServiciosByPrecio",
+        "parameters": [
+          {
+            "name": "precioMin",
+            "in": "query",
+            "description": "Precio mínimo",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "precioMax",
+            "in": "query",
+            "description": "Precio máximo",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServicioTuristicoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/servicios/municipalidad/{municipalidadId}": {
+      "get": {
+        "tags": [
+          "Servicios Turísticos"
+        ],
+        "summary": "Obtener servicios por municipalidad",
+        "operationId": "getServiciosByMunicipalidad",
+        "parameters": [
+          {
+            "name": "municipalidadId",
+            "in": "path",
+            "description": "ID de la municipalidad",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServicioTuristicoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/servicios/mis-servicios": {
+      "get": {
+        "tags": [
+          "Servicios Turísticos"
+        ],
+        "summary": "Obtener mis servicios (emprendedor autenticado)",
+        "operationId": "getMisServicios",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServicioTuristicoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/servicios/estado/{estado}": {
+      "get": {
+        "tags": [
+          "Servicios Turísticos"
+        ],
+        "summary": "Obtener servicios por estado",
+        "operationId": "getServiciosByEstado",
+        "parameters": [
+          {
+            "name": "estado",
+            "in": "path",
+            "description": "Estado del servicio",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ACTIVO",
+                "INACTIVO",
+                "AGOTADO",
+                "MANTENIMIENTO"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServicioTuristicoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/servicios/emprendedor/{emprendedorId}": {
+      "get": {
+        "tags": [
+          "Servicios Turísticos"
+        ],
+        "summary": "Obtener servicios por emprendedor",
+        "operationId": "getServiciosByEmprendedor",
+        "parameters": [
+          {
+            "name": "emprendedorId",
+            "in": "path",
+            "description": "ID del emprendedor",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServicioTuristicoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/servicios/cercanos": {
+      "get": {
+        "tags": [
+          "Servicios Turísticos"
+        ],
+        "summary": "Obtener servicios cercanos a una ubicación",
+        "operationId": "getServiciosCercanos",
+        "parameters": [
+          {
+            "name": "latitud",
+            "in": "query",
+            "description": "Latitud",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "longitud",
+            "in": "query",
+            "description": "Longitud",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "radio",
+            "in": "query",
+            "description": "Radio en km",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "default": 5
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServicioTuristicoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas/{id}": {
+      "get": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Obtener reserva por ID",
+        "operationId": "getReservaById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID de la reserva",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservaResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas/plan/{planId}": {
+      "get": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Obtener reservas por plan turístico",
+        "operationId": "getReservasByPlan",
+        "parameters": [
+          {
+            "name": "planId",
+            "in": "path",
+            "description": "ID del plan turístico",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReservaResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas/municipalidad/{municipalidadId}": {
+      "get": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Obtener reservas por municipalidad",
+        "operationId": "getReservasByMunicipalidad",
+        "parameters": [
+          {
+            "name": "municipalidadId",
+            "in": "path",
+            "description": "ID de la municipalidad",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReservaResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas/mis-reservas": {
+      "get": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Obtener mis reservas (usuario autenticado)",
+        "operationId": "getMisReservas",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReservaResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas/codigo/{codigo}": {
+      "get": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Obtener reserva por código",
+        "operationId": "getReservaByCodigo",
+        "parameters": [
+          {
+            "name": "codigo",
+            "in": "path",
+            "description": "Código de la reserva",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservaResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas-carrito/{id}": {
+      "get": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Obtener reserva por ID",
+        "operationId": "obtenerReservaPorId",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID de la reserva",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservaCarritoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas-carrito/{id}/conversaciones": {
+      "get": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Obtener conversaciones de chat de una reserva",
+        "operationId": "obtenerConversacionesDeReserva",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID de la reserva",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatConversacionResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas-carrito/mis-reservas": {
+      "get": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Obtener mis reservas ordenadas por fecha",
+        "operationId": "obtenerMisReservas",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReservaCarritoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas-carrito/estado/{estado}": {
+      "get": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Filtrar mis reservas por estado",
+        "operationId": "obtenerReservasPorEstado",
+        "parameters": [
+          {
+            "name": "estado",
+            "in": "path",
+            "description": "Estado de la reserva",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReservaCarritoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas-carrito/estadisticas": {
+      "get": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Obtener estadísticas de reservas del usuario",
+        "operationId": "obtenerEstadisticasReservas",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas-carrito/emprendedor/reservas": {
+      "get": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Obtener reservas para emprendedor autenticado",
+        "operationId": "obtenerReservasPorEmprendedor",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReservaCarritoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservas-carrito/codigo/{codigo}": {
+      "get": {
+        "tags": [
+          "Reservas desde Carrito"
+        ],
+        "summary": "Obtener reserva por código único",
+        "operationId": "obtenerReservaPorCodigo",
+        "parameters": [
+          {
+            "name": "codigo",
+            "in": "path",
+            "description": "Código de la reserva",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservaCarritoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/planes/search": {
+      "get": {
+        "tags": [
+          "Planes Turísticos"
+        ],
+        "summary": "Buscar planes por nombre o descripción",
+        "operationId": "searchPlanes",
+        "parameters": [
+          {
+            "name": "termino",
+            "in": "query",
+            "description": "Término de búsqueda",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlanTuristicoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/planes/precio": {
+      "get": {
+        "tags": [
+          "Planes Turísticos"
+        ],
+        "summary": "Obtener planes por rango de precio",
+        "operationId": "getPlanesByPrecio",
+        "parameters": [
+          {
+            "name": "precioMin",
+            "in": "query",
+            "description": "Precio mínimo",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "precioMax",
+            "in": "query",
+            "description": "Precio máximo",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlanTuristicoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/planes/populares": {
+      "get": {
+        "tags": [
+          "Planes Turísticos"
+        ],
+        "summary": "Obtener planes más populares",
+        "operationId": "getPlanesMasPopulares",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlanTuristicoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/planes/municipalidad/{municipalidadId}": {
+      "get": {
+        "tags": [
+          "Planes Turísticos"
+        ],
+        "summary": "Obtener planes por municipalidad",
+        "operationId": "getPlanesByMunicipalidad",
+        "parameters": [
+          {
+            "name": "municipalidadId",
+            "in": "path",
+            "description": "ID de la municipalidad",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlanTuristicoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/planes/mis-planes": {
+      "get": {
+        "tags": [
+          "Planes Turísticos"
+        ],
+        "summary": "Obtener mis planes (usuario autenticado)",
+        "operationId": "getMisPlanes",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlanTuristicoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/planes/estado/{estado}": {
+      "get": {
+        "tags": [
+          "Planes Turísticos"
+        ],
+        "summary": "Obtener planes por estado",
+        "operationId": "getPlanesByEstado",
+        "parameters": [
+          {
+            "name": "estado",
+            "in": "path",
+            "description": "Estado del plan",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BORRADOR",
+                "ACTIVO",
+                "INACTIVO",
+                "AGOTADO",
+                "SUSPENDIDO"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlanTuristicoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/planes/duracion": {
+      "get": {
+        "tags": [
+          "Planes Turísticos"
+        ],
+        "summary": "Obtener planes por rango de duración",
+        "operationId": "getPlanesByDuracion",
+        "parameters": [
+          {
+            "name": "duracionMin",
+            "in": "query",
+            "description": "Duración mínima en días",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "duracionMax",
+            "in": "query",
+            "description": "Duración máxima en días",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlanTuristicoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/planes/dificultad/{nivel}": {
+      "get": {
+        "tags": [
+          "Planes Turísticos"
+        ],
+        "summary": "Obtener planes por nivel de dificultad",
+        "operationId": "getPlanesByNivelDificultad",
+        "parameters": [
+          {
+            "name": "nivel",
+            "in": "path",
+            "description": "Nivel de dificultad",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "FACIL",
+                "MODERADO",
+                "DIFICIL",
+                "EXTREMO"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlanTuristicoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pagos/{id}": {
+      "get": {
+        "tags": [
+          "Pagos"
+        ],
+        "summary": "Obtener pago por ID",
+        "operationId": "getPagoById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID del pago",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pagos/reserva/{reservaId}": {
+      "get": {
+        "tags": [
+          "Pagos"
+        ],
+        "summary": "Obtener pagos por reserva",
+        "operationId": "getPagosByReserva",
+        "parameters": [
+          {
+            "name": "reservaId",
+            "in": "path",
+            "description": "ID de la reserva",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PagoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pagos/municipalidad/{municipalidadId}": {
+      "get": {
+        "tags": [
+          "Pagos"
+        ],
+        "summary": "Obtener pagos por municipalidad",
+        "operationId": "getPagosByMunicipalidad",
+        "parameters": [
+          {
+            "name": "municipalidadId",
+            "in": "path",
+            "description": "ID de la municipalidad",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PagoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pagos/mis-pagos": {
+      "get": {
+        "tags": [
+          "Pagos"
+        ],
+        "summary": "Obtener mis pagos (usuario autenticado)",
+        "operationId": "getMisPagos",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PagoResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pagos/codigo/{codigo}": {
+      "get": {
+        "tags": [
+          "Pagos"
+        ],
+        "summary": "Obtener pago por código",
+        "operationId": "getPagoByCodigo",
+        "parameters": [
+          {
+            "name": "codigo",
+            "in": "path",
+            "description": "Código del pago",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/municipalidades/provincia/{provincia}": {
+      "get": {
+        "tags": [
+          "municipalidad-controller"
+        ],
+        "operationId": "getMunicipalidadesByProvincia",
+        "parameters": [
+          {
+            "name": "provincia",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MunicipalidadResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/municipalidades/mi-municipalidad": {
+      "get": {
+        "tags": [
+          "municipalidad-controller"
+        ],
+        "operationId": "getMiMunicipalidad",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MunicipalidadResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/municipalidades/distrito/{distrito}": {
+      "get": {
+        "tags": [
+          "municipalidad-controller"
+        ],
+        "operationId": "getMunicipalidadesByDistrito",
+        "parameters": [
+          {
+            "name": "distrito",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MunicipalidadResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/municipalidades/departamento/{departamento}": {
+      "get": {
+        "tags": [
+          "municipalidad-controller"
+        ],
+        "operationId": "getMunicipalidadesByDepartamento",
+        "parameters": [
+          {
+            "name": "departamento",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MunicipalidadResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/emprendedores/rubro/{rubro}": {
+      "get": {
+        "tags": [
+          "emprendedor-controller"
+        ],
+        "operationId": "getEmprendedoresByRubro",
+        "parameters": [
+          {
+            "name": "rubro",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EmprendedorResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/emprendedores/municipalidad/{municipalidadId}": {
+      "get": {
+        "tags": [
+          "emprendedor-controller"
+        ],
+        "operationId": "getEmprendedoresByMunicipalidad",
+        "parameters": [
+          {
+            "name": "municipalidadId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EmprendedorResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/emprendedores/mi-emprendedor": {
+      "get": {
+        "tags": [
+          "emprendedor-controller"
+        ],
+        "operationId": "getMiEmprendedor",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmprendedorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/emprendedores/cercanos": {
+      "get": {
+        "tags": [
+          "emprendedor-controller"
+        ],
+        "summary": "Obtener emprendedores cercanos a una ubicación",
+        "operationId": "getEmprendedoresCercanos",
+        "parameters": [
+          {
+            "name": "latitud",
+            "in": "query",
+            "description": "Latitud",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "longitud",
+            "in": "query",
+            "description": "Longitud",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "radio",
+            "in": "query",
+            "description": "Radio en km",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "default": 5
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EmprendedorResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/emprendedores/categoria/{categoriaId}": {
+      "get": {
+        "tags": [
+          "emprendedor-controller"
+        ],
+        "operationId": "getEmprendedoresByCategoria",
+        "parameters": [
+          {
+            "name": "categoriaId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EmprendedorResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/reserva-carrito/{reservaCarritoId}/conversaciones": {
+      "get": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Obtener conversaciones por reserva carrito",
+        "operationId": "obtenerConversacionesPorReservaCarrito",
+        "parameters": [
+          {
+            "name": "reservaCarritoId",
+            "in": "path",
+            "description": "ID de la reserva carrito",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatConversacionResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/mensajes-no-leidos": {
+      "get": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Contar mensajes no leídos del usuario",
+        "operationId": "contarMensajesNoLeidos",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/conversaciones": {
+      "get": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Obtener conversaciones del usuario autenticado",
+        "operationId": "obtenerConversaciones",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatConversacionResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/conversacion/{conversacionId}": {
+      "get": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Obtener detalles de una conversación específica",
+        "operationId": "obtenerConversacion",
+        "parameters": [
+          {
+            "name": "conversacionId",
+            "in": "path",
+            "description": "ID de la conversación",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatConversacionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/conversacion/{conversacionId}/mensajes": {
+      "get": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Obtener mensajes de una conversación con paginación",
+        "operationId": "obtenerMensajes",
+        "parameters": [
+          {
+            "name": "conversacionId",
+            "in": "path",
+            "description": "ID de la conversación",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "description": "Número de página (0 basado)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "tamaño",
+            "in": "query",
+            "description": "Tamaño de página",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatMensajeResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/carrito": {
+      "get": {
+        "tags": [
+          "Carrito"
+        ],
+        "summary": "Obtener carrito del usuario autenticado",
+        "operationId": "obtenerCarrito",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CarritoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/carrito/total": {
+      "get": {
+        "tags": [
+          "Carrito"
+        ],
+        "summary": "Obtener total del carrito",
+        "operationId": "obtenerTotalCarrito",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CarritoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/carrito/contar": {
+      "get": {
+        "tags": [
+          "Carrito"
+        ],
+        "summary": "Contar items en el carrito",
+        "operationId": "contarItems",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/init": {
+      "get": {
+        "tags": [
+          "auth-controller"
+        ],
+        "operationId": "initRoles",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/{usuarioId}/desasignar-emprendedor": {
+      "delete": {
+        "tags": [
+          "usuario-controller"
+        ],
+        "operationId": "desasignarUsuarioDeEmprendedor",
+        "parameters": [
+          {
+            "name": "usuarioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/carrito/limpiar": {
+      "delete": {
+        "tags": [
+          "Carrito"
+        ],
+        "summary": "Limpiar carrito completo",
+        "operationId": "limpiarCarrito",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UbicacionRequest": {
+        "type": "object",
+        "properties": {
+          "latitud": {
+            "type": "number",
+            "format": "double",
+            "maximum": 90,
+            "minimum": -90
+          },
+          "longitud": {
+            "type": "number",
+            "format": "double",
+            "maximum": 180,
+            "minimum": -180
+          },
+          "direccionCompleta": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "latitud",
+          "longitud"
+        ]
+      },
+      "UbicacionResponse": {
+        "type": "object",
+        "properties": {
+          "latitud": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitud": {
+            "type": "number",
+            "format": "double"
+          },
+          "direccionCompleta": {
+            "type": "string"
+          },
+          "tieneUbicacionValida": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ServicioTuristicoRequest": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "precio": {
+            "type": "number"
+          },
+          "duracionHoras": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "capacidadMaxima": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "ALOJAMIENTO",
+              "TRANSPORTE",
+              "ALIMENTACION",
+              "GUIA_TURISTICO",
+              "ACTIVIDAD_RECREATIVA",
+              "TOUR",
+              "AVENTURA",
+              "CULTURAL",
+              "GASTRONOMICO",
+              "WELLNESS",
+              "OTRO"
+            ]
+          },
+          "ubicacion": {
+            "type": "string"
+          },
+          "latitud": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitud": {
+            "type": "number",
+            "format": "double"
+          },
+          "requisitos": {
+            "type": "string"
+          },
+          "incluye": {
+            "type": "string"
+          },
+          "noIncluye": {
+            "type": "string"
+          },
+          "imagenUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "capacidadMaxima",
+          "duracionHoras",
+          "nombre",
+          "precio",
+          "tipo"
+        ]
+      },
+      "EmprendedorBasicResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombreEmpresa": {
+            "type": "string"
+          },
+          "rubro": {
+            "type": "string"
+          },
+          "telefono": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "municipalidad": {
+            "$ref": "#/components/schemas/MunicipalidadBasicResponse"
+          }
+        }
+      },
+      "MunicipalidadBasicResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "departamento": {
+            "type": "string"
+          },
+          "provincia": {
+            "type": "string"
+          },
+          "distrito": {
+            "type": "string"
+          }
+        }
+      },
+      "ServicioTuristicoResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "precio": {
+            "type": "number"
+          },
+          "duracionHoras": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "capacidadMaxima": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "ALOJAMIENTO",
+              "TRANSPORTE",
+              "ALIMENTACION",
+              "GUIA_TURISTICO",
+              "ACTIVIDAD_RECREATIVA",
+              "TOUR",
+              "AVENTURA",
+              "CULTURAL",
+              "GASTRONOMICO",
+              "WELLNESS",
+              "OTRO"
+            ]
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "ACTIVO",
+              "INACTIVO",
+              "AGOTADO",
+              "MANTENIMIENTO"
+            ]
+          },
+          "ubicacion": {
+            "type": "string"
+          },
+          "latitud": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitud": {
+            "type": "number",
+            "format": "double"
+          },
+          "requisitos": {
+            "type": "string"
+          },
+          "incluye": {
+            "type": "string"
+          },
+          "noIncluye": {
+            "type": "string"
+          },
+          "imagenUrl": {
+            "type": "string"
+          },
+          "emprendedor": {
+            "$ref": "#/components/schemas/EmprendedorBasicResponse"
+          }
+        }
+      },
+      "PlanTuristicoRequest": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "duracionDias": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "capacidadMaxima": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nivelDificultad": {
+            "type": "string",
+            "enum": [
+              "FACIL",
+              "MODERADO",
+              "DIFICIL",
+              "EXTREMO"
+            ]
+          },
+          "imagenPrincipalUrl": {
+            "type": "string"
+          },
+          "itinerario": {
+            "type": "string"
+          },
+          "incluye": {
+            "type": "string"
+          },
+          "noIncluye": {
+            "type": "string"
+          },
+          "recomendaciones": {
+            "type": "string"
+          },
+          "requisitos": {
+            "type": "string"
+          },
+          "municipalidadId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "servicios": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServicioPlanRequest"
+            }
+          }
+        },
+        "required": [
+          "capacidadMaxima",
+          "duracionDias",
+          "nivelDificultad",
+          "nombre",
+          "servicios"
+        ]
+      },
+      "ServicioPlanRequest": {
+        "type": "object",
+        "properties": {
+          "servicioId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "diaDelPlan": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ordenEnElDia": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "horaInicio": {
+            "type": "string"
+          },
+          "horaFin": {
+            "type": "string"
+          },
+          "precioEspecial": {
+            "type": "number"
+          },
+          "notas": {
+            "type": "string"
+          },
+          "esOpcional": {
+            "type": "boolean"
+          },
+          "esPersonalizable": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "diaDelPlan",
+          "esOpcional",
+          "esPersonalizable",
+          "ordenEnElDia",
+          "servicioId"
+        ]
+      },
+      "PlanTuristicoResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "precioTotal": {
+            "type": "number"
+          },
+          "duracionDias": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "capacidadMaxima": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "BORRADOR",
+              "ACTIVO",
+              "INACTIVO",
+              "AGOTADO",
+              "SUSPENDIDO"
+            ]
+          },
+          "nivelDificultad": {
+            "type": "string",
+            "enum": [
+              "FACIL",
+              "MODERADO",
+              "DIFICIL",
+              "EXTREMO"
+            ]
+          },
+          "imagenPrincipalUrl": {
+            "type": "string"
+          },
+          "itinerario": {
+            "type": "string"
+          },
+          "incluye": {
+            "type": "string"
+          },
+          "noIncluye": {
+            "type": "string"
+          },
+          "recomendaciones": {
+            "type": "string"
+          },
+          "requisitos": {
+            "type": "string"
+          },
+          "fechaCreacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaActualizacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "municipalidad": {
+            "$ref": "#/components/schemas/MunicipalidadBasicResponse"
+          },
+          "usuarioCreador": {
+            "$ref": "#/components/schemas/UsuarioBasicResponse"
+          },
+          "servicios": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServicioPlanResponse"
+            }
+          },
+          "totalReservas": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ServicioPlanResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "diaDelPlan": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ordenEnElDia": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "horaInicio": {
+            "type": "string"
+          },
+          "horaFin": {
+            "type": "string"
+          },
+          "precioEspecial": {
+            "type": "number"
+          },
+          "notas": {
+            "type": "string"
+          },
+          "esOpcional": {
+            "type": "boolean"
+          },
+          "esPersonalizable": {
+            "type": "boolean"
+          },
+          "servicio": {
+            "$ref": "#/components/schemas/ServicioTuristicoResponse"
+          }
+        }
+      },
+      "UsuarioBasicResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "apellido": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        }
+      },
+      "MunicipalidadRequest": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 2
+          },
+          "departamento": {
+            "type": "string",
+            "minLength": 1
+          },
+          "provincia": {
+            "type": "string",
+            "minLength": 1
+          },
+          "distrito": {
+            "type": "string",
+            "minLength": 1
+          },
+          "direccion": {
+            "type": "string"
+          },
+          "telefono": {
+            "type": "string"
+          },
+          "sitioWeb": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "departamento",
+          "distrito",
+          "nombre",
+          "provincia"
+        ]
+      },
+      "EmprendedorResumen": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombreEmpresa": {
+            "type": "string"
+          },
+          "rubro": {
+            "type": "string"
+          }
+        }
+      },
+      "MunicipalidadResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "departamento": {
+            "type": "string"
+          },
+          "provincia": {
+            "type": "string"
+          },
+          "distrito": {
+            "type": "string"
+          },
+          "direccion": {
+            "type": "string"
+          },
+          "telefono": {
+            "type": "string"
+          },
+          "sitioWeb": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "usuarioId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "emprendedores": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EmprendedorResumen"
+            }
+          }
+        }
+      },
+      "EmprendedorRequest": {
+        "type": "object",
+        "properties": {
+          "nombreEmpresa": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 2
+          },
+          "rubro": {
+            "type": "string",
+            "minLength": 1
+          },
+          "direccion": {
+            "type": "string"
+          },
+          "latitud": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitud": {
+            "type": "number",
+            "format": "double"
+          },
+          "direccionCompleta": {
+            "type": "string"
+          },
+          "telefono": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "sitioWeb": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "productos": {
+            "type": "string"
+          },
+          "servicios": {
+            "type": "string"
+          },
+          "municipalidadId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "categoriaId": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "required": [
+          "municipalidadId",
+          "nombreEmpresa",
+          "rubro"
+        ]
+      },
+      "CategoriaResumen": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombre": {
+            "type": "string"
+          }
+        }
+      },
+      "EmprendedorResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombreEmpresa": {
+            "type": "string"
+          },
+          "rubro": {
+            "type": "string"
+          },
+          "direccion": {
+            "type": "string"
+          },
+          "latitud": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitud": {
+            "type": "number",
+            "format": "double"
+          },
+          "direccionCompleta": {
+            "type": "string"
+          },
+          "telefono": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "sitioWeb": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "productos": {
+            "type": "string"
+          },
+          "servicios": {
+            "type": "string"
+          },
+          "usuarioId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "municipalidad": {
+            "$ref": "#/components/schemas/MunicipalidadResumen"
+          },
+          "categoria": {
+            "$ref": "#/components/schemas/CategoriaResumen"
+          }
+        }
+      },
+      "MunicipalidadResumen": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "distrito": {
+            "type": "string"
+          }
+        }
+      },
+      "CategoriaRequest": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 2
+          },
+          "descripcion": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "nombre"
+        ]
+      },
+      "CategoriaResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "cantidadEmprendedores": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CarritoItemResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cantidad": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "precioUnitario": {
+            "type": "number"
+          },
+          "subtotal": {
+            "type": "number"
+          },
+          "fechaServicio": {
+            "type": "string",
+            "format": "date"
+          },
+          "notasEspeciales": {
+            "type": "string"
+          },
+          "fechaAgregado": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "servicio": {
+            "$ref": "#/components/schemas/ServicioTuristicoBasicResponse"
+          }
+        }
+      },
+      "CarritoResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "usuarioId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "fechaCreacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaActualizacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "totalCarrito": {
+            "type": "number"
+          },
+          "totalItems": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CarritoItemResponse"
+            }
+          }
+        }
+      },
+      "ServicioTuristicoBasicResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "precio": {
+            "type": "number"
+          },
+          "duracionHoras": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "ALOJAMIENTO",
+              "TRANSPORTE",
+              "ALIMENTACION",
+              "GUIA_TURISTICO",
+              "ACTIVIDAD_RECREATIVA",
+              "TOUR",
+              "AVENTURA",
+              "CULTURAL",
+              "GASTRONOMICO",
+              "WELLNESS",
+              "OTRO"
+            ]
+          },
+          "imagenUrl": {
+            "type": "string"
+          },
+          "ubicacion": {
+            "$ref": "#/components/schemas/UbicacionResponse"
+          },
+          "emprendedor": {
+            "$ref": "#/components/schemas/EmprendedorBasicResponse"
+          }
+        }
+      },
+      "ReservaRequest": {
+        "type": "object",
+        "properties": {
+          "planId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "fechaInicio": {
+            "type": "string",
+            "format": "date"
+          },
+          "numeroPersonas": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "observaciones": {
+            "type": "string"
+          },
+          "solicitudesEspeciales": {
+            "type": "string"
+          },
+          "contactoEmergencia": {
+            "type": "string"
+          },
+          "telefonoEmergencia": {
+            "type": "string"
+          },
+          "metodoPago": {
+            "type": "string",
+            "enum": [
+              "EFECTIVO",
+              "TARJETA_CREDITO",
+              "TARJETA_DEBITO",
+              "TRANSFERENCIA",
+              "PAGO_MOVIL",
+              "PAYPAL",
+              "OTRO"
+            ]
+          },
+          "serviciosPersonalizados": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReservaServicioRequest"
+            }
+          }
+        },
+        "required": [
+          "fechaInicio",
+          "numeroPersonas",
+          "planId"
+        ]
+      },
+      "ReservaServicioRequest": {
+        "type": "object",
+        "properties": {
+          "servicioPlanId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "incluido": {
+            "type": "boolean"
+          },
+          "precioPersonalizado": {
+            "type": "number"
+          },
+          "observaciones": {
+            "type": "string"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "INCLUIDO",
+              "EXCLUIDO",
+              "PERSONALIZADO",
+              "PENDIENTE_CONFIRMACION"
+            ]
+          }
+        },
+        "required": [
+          "estado",
+          "incluido",
+          "servicioPlanId"
+        ]
+      },
+      "PagoResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "codigoPago": {
+            "type": "string"
+          },
+          "monto": {
+            "type": "number"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "SEÑA",
+              "PAGO_COMPLETO",
+              "PAGO_PARCIAL",
+              "SALDO_PENDIENTE"
+            ]
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "PENDIENTE",
+              "PROCESANDO",
+              "CONFIRMADO",
+              "FALLIDO",
+              "REEMBOLSADO",
+              "CANCELADO"
+            ]
+          },
+          "metodoPago": {
+            "type": "string",
+            "enum": [
+              "EFECTIVO",
+              "TARJETA_CREDITO",
+              "TARJETA_DEBITO",
+              "TRANSFERENCIA",
+              "PAGO_MOVIL",
+              "PAYPAL",
+              "OTRO"
+            ]
+          },
+          "numeroTransaccion": {
+            "type": "string"
+          },
+          "numeroAutorizacion": {
+            "type": "string"
+          },
+          "observaciones": {
+            "type": "string"
+          },
+          "fechaPago": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaConfirmacion": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PlanTuristicoBasicResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "precioTotal": {
+            "type": "number"
+          },
+          "duracionDias": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "capacidadMaxima": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "BORRADOR",
+              "ACTIVO",
+              "INACTIVO",
+              "AGOTADO",
+              "SUSPENDIDO"
+            ]
+          },
+          "nivelDificultad": {
+            "type": "string",
+            "enum": [
+              "FACIL",
+              "MODERADO",
+              "DIFICIL",
+              "EXTREMO"
+            ]
+          },
+          "imagenPrincipalUrl": {
+            "type": "string"
+          },
+          "municipalidad": {
+            "$ref": "#/components/schemas/MunicipalidadBasicResponse"
+          }
+        }
+      },
+      "ReservaResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "codigoReserva": {
+            "type": "string"
+          },
+          "fechaInicio": {
+            "type": "string",
+            "format": "date"
+          },
+          "fechaFin": {
+            "type": "string",
+            "format": "date"
+          },
+          "numeroPersonas": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "montoTotal": {
+            "type": "number"
+          },
+          "montoDescuento": {
+            "type": "number"
+          },
+          "montoFinal": {
+            "type": "number"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "PENDIENTE",
+              "CONFIRMADA",
+              "PAGADA",
+              "EN_PROCESO",
+              "COMPLETADA",
+              "CANCELADA",
+              "NO_SHOW"
+            ]
+          },
+          "metodoPago": {
+            "type": "string",
+            "enum": [
+              "EFECTIVO",
+              "TARJETA_CREDITO",
+              "TARJETA_DEBITO",
+              "TRANSFERENCIA",
+              "PAGO_MOVIL",
+              "PAYPAL",
+              "OTRO"
+            ]
+          },
+          "observaciones": {
+            "type": "string"
+          },
+          "solicitudesEspeciales": {
+            "type": "string"
+          },
+          "contactoEmergencia": {
+            "type": "string"
+          },
+          "telefonoEmergencia": {
+            "type": "string"
+          },
+          "fechaReserva": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaConfirmacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaCancelacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "motivoCancelacion": {
+            "type": "string"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/PlanTuristicoBasicResponse"
+          },
+          "usuario": {
+            "$ref": "#/components/schemas/UsuarioBasicResponse"
+          },
+          "serviciosPersonalizados": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReservaServicioResponse"
+            }
+          },
+          "pagos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PagoResponse"
+            }
+          }
+        }
+      },
+      "ReservaServicioResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "incluido": {
+            "type": "boolean"
+          },
+          "precioPersonalizado": {
+            "type": "number"
+          },
+          "observaciones": {
+            "type": "string"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "INCLUIDO",
+              "EXCLUIDO",
+              "PERSONALIZADO",
+              "PENDIENTE_CONFIRMACION"
+            ]
+          },
+          "servicioPlan": {
+            "$ref": "#/components/schemas/ServicioPlanResponse"
+          }
+        }
+      },
+      "ReservaCarritoRequest": {
+        "type": "object",
+        "properties": {
+          "observaciones": {
+            "type": "string"
+          },
+          "contactoEmergencia": {
+            "type": "string"
+          },
+          "telefonoEmergencia": {
+            "type": "string"
+          },
+          "metodoPago": {
+            "type": "string",
+            "enum": [
+              "EFECTIVO",
+              "TARJETA_CREDITO",
+              "TARJETA_DEBITO",
+              "TRANSFERENCIA",
+              "PAGO_MOVIL",
+              "PAYPAL",
+              "OTRO"
+            ]
+          }
+        }
+      },
+      "PagoCarritoResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "codigoPago": {
+            "type": "string"
+          },
+          "monto": {
+            "type": "number"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "SEÑA",
+              "PAGO_COMPLETO",
+              "PAGO_PARCIAL",
+              "SALDO_PENDIENTE"
+            ]
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "PENDIENTE",
+              "PROCESANDO",
+              "CONFIRMADO",
+              "FALLIDO",
+              "REEMBOLSADO",
+              "CANCELADO"
+            ]
+          },
+          "metodoPago": {
+            "type": "string",
+            "enum": [
+              "EFECTIVO",
+              "TARJETA_CREDITO",
+              "TARJETA_DEBITO",
+              "TRANSFERENCIA",
+              "PAGO_MOVIL",
+              "PAYPAL",
+              "OTRO"
+            ]
+          },
+          "numeroTransaccion": {
+            "type": "string"
+          },
+          "numeroAutorizacion": {
+            "type": "string"
+          },
+          "observaciones": {
+            "type": "string"
+          },
+          "fechaPago": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaConfirmacion": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ReservaCarritoItemResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cantidad": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "precioUnitario": {
+            "type": "number"
+          },
+          "subtotal": {
+            "type": "number"
+          },
+          "fechaServicio": {
+            "type": "string",
+            "format": "date"
+          },
+          "notasEspeciales": {
+            "type": "string"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "PENDIENTE",
+              "CONFIRMADO",
+              "COMPLETADO",
+              "CANCELADO"
+            ]
+          },
+          "servicio": {
+            "$ref": "#/components/schemas/ServicioTuristicoBasicResponse"
+          }
+        }
+      },
+      "ReservaCarritoResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "codigoReserva": {
+            "type": "string"
+          },
+          "montoTotal": {
+            "type": "number"
+          },
+          "montoDescuento": {
+            "type": "number"
+          },
+          "montoFinal": {
+            "type": "number"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "PENDIENTE",
+              "CONFIRMADA",
+              "PAGADA",
+              "EN_PROCESO",
+              "COMPLETADA",
+              "CANCELADA"
+            ]
+          },
+          "metodoPago": {
+            "type": "string",
+            "enum": [
+              "EFECTIVO",
+              "TARJETA_CREDITO",
+              "TARJETA_DEBITO",
+              "TRANSFERENCIA",
+              "PAGO_MOVIL",
+              "PAYPAL",
+              "OTRO"
+            ]
+          },
+          "observaciones": {
+            "type": "string"
+          },
+          "contactoEmergencia": {
+            "type": "string"
+          },
+          "telefonoEmergencia": {
+            "type": "string"
+          },
+          "fechaReserva": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaConfirmacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaCancelacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "motivoCancelacion": {
+            "type": "string"
+          },
+          "usuario": {
+            "$ref": "#/components/schemas/UsuarioBasicResponse"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReservaCarritoItemResponse"
+            }
+          },
+          "pagos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PagoCarritoResponse"
+            }
+          }
+        }
+      },
+      "PagoRequest": {
+        "type": "object",
+        "properties": {
+          "reservaId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "monto": {
+            "type": "number"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "SEÑA",
+              "PAGO_COMPLETO",
+              "PAGO_PARCIAL",
+              "SALDO_PENDIENTE"
+            ]
+          },
+          "metodoPago": {
+            "type": "string",
+            "enum": [
+              "EFECTIVO",
+              "TARJETA_CREDITO",
+              "TARJETA_DEBITO",
+              "TRANSFERENCIA",
+              "PAGO_MOVIL",
+              "PAYPAL",
+              "OTRO"
+            ]
+          },
+          "numeroTransaccion": {
+            "type": "string"
+          },
+          "numeroAutorizacion": {
+            "type": "string"
+          },
+          "observaciones": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "metodoPago",
+          "monto",
+          "reservaId",
+          "tipo"
+        ]
+      },
+      "ChatMensajeResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "conversacionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "mensaje": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "TEXTO",
+              "IMAGEN",
+              "ARCHIVO",
+              "SISTEMA"
+            ]
+          },
+          "fechaEnvio": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "leido": {
+            "type": "boolean"
+          },
+          "esDeEmprendedor": {
+            "type": "boolean"
+          },
+          "remitenteId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "remitenteNombre": {
+            "type": "string"
+          },
+          "archivoUrl": {
+            "type": "string"
+          },
+          "archivoNombre": {
+            "type": "string"
+          },
+          "archivoTipo": {
+            "type": "string"
+          }
+        }
+      },
+      "ChatMensajeRequest": {
+        "type": "object",
+        "properties": {
+          "conversacionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "mensaje": {
+            "type": "string",
+            "minLength": 1
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "TEXTO",
+              "IMAGEN",
+              "ARCHIVO",
+              "SISTEMA"
+            ]
+          },
+          "archivoUrl": {
+            "type": "string"
+          },
+          "archivoNombre": {
+            "type": "string"
+          },
+          "archivoTipo": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "conversacionId",
+          "mensaje"
+        ]
+      },
+      "ChatConversacionResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "usuarioId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "emprendedorId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "reservaId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "reservaCarritoId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "codigoReservaAsociada": {
+            "type": "string"
+          },
+          "fechaCreacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaUltimoMensaje": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "ACTIVA",
+              "CERRADA",
+              "ARCHIVADA"
+            ]
+          },
+          "usuario": {
+            "$ref": "#/components/schemas/UsuarioBasicResponse"
+          },
+          "emprendedor": {
+            "$ref": "#/components/schemas/EmprendedorBasicResponse"
+          },
+          "ultimoMensaje": {
+            "$ref": "#/components/schemas/ChatMensajeResponse"
+          },
+          "mensajesNoLeidos": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "mensajesRecientes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatMensajeResponse"
+            }
+          }
+        }
+      },
+      "CarritoItemRequest": {
+        "type": "object",
+        "properties": {
+          "servicioId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cantidad": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fechaServicio": {
+            "type": "string",
+            "format": "date"
+          },
+          "notasEspeciales": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cantidad",
+          "fechaServicio",
+          "servicioId"
+        ]
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 2
+          },
+          "apellido": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 2
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 3
+          },
+          "email": {
+            "type": "string",
+            "minLength": 1
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 6
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "apellido",
+          "email",
+          "nombre",
+          "password",
+          "username"
+        ]
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "tokenType": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 1
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "password",
+          "username"
+        ]
+      },
+      "UsuarioResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "apellido": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "emprendedor": {
+            "$ref": "#/components/schemas/EmprendedorResumen"
+          }
+        }
+      }
+    }
+  }
+}

@@ -96,7 +96,7 @@ fun CarritoScreen(
                                 style = MaterialTheme.typography.bodyMedium
                             )
                             Text(
-                                text = "$${(carritoState as Result.Success<CarritoResponse>).data.totalCarrito}",
+                                text = "S/ %.2f".format((carritoState as Result.Success<CarritoResponse>).data.totalCarrito),
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
@@ -340,13 +340,13 @@ fun CarritoItemCard(
                 
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        text = "$${item.subtotal}",
+                        text = "S/ %.2f".format(item.subtotal),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = "$${item.precioUnitario} c/u",
+                        text = "S/ %.2f c/u".format(item.precioUnitario),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

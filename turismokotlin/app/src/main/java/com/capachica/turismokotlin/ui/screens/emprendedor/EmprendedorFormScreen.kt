@@ -496,8 +496,9 @@ fun EmprendedorFormScreen(
                         },
                         onDismiss = { showLocationDialog = false },
                         onUseCurrentLocation = {
-                            // Implementar geolocalización aquí si es necesario
-                            // O usar el GeolocationHelper
+                            // Usar GeolocationHelper para obtener ubicación actual
+                            showLocationDialog = false
+                            // La geolocalización se maneja en un dialog separado
                         }
                     )
                 }

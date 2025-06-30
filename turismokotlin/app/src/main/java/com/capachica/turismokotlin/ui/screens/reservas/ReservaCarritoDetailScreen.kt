@@ -453,6 +453,28 @@ private fun AccionesCard(
                     }
                 }
                 
+                EstadoReservaCarrito.PAGADA -> {
+                    Text(
+                        text = "Reserva pagada - En espera de inicio",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                
+                EstadoReservaCarrito.EN_PROCESO -> {
+                    Button(
+                        onClick = onCompletar,
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !completarLoading
+                    ) {
+                        if (completarLoading) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
+                        Text("Marcar como Completada")
+                    }
+                }
+                
                 EstadoReservaCarrito.COMPLETADA -> {
                     Text(
                         text = "Reserva completada exitosamente",
@@ -468,9 +490,6 @@ private fun AccionesCard(
                         color = MaterialTheme.colorScheme.error
                     )
                 }
-
-                EstadoReservaCarrito.PAGADA -> TODO()
-                EstadoReservaCarrito.EN_PROCESO -> TODO()
             }
         }
     }
@@ -502,10 +521,10 @@ private fun EstadoChip(estado: EstadoReservaCarrito) {
     val (backgroundColor, contentColor) = when (estado) {
         EstadoReservaCarrito.PENDIENTE -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
         EstadoReservaCarrito.CONFIRMADA -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
+        EstadoReservaCarrito.PAGADA -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
+        EstadoReservaCarrito.EN_PROCESO -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
         EstadoReservaCarrito.COMPLETADA -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
         EstadoReservaCarrito.CANCELADA -> MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
-        EstadoReservaCarrito.PAGADA -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
-        EstadoReservaCarrito.EN_PROCESO -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
     }
     
     Surface(

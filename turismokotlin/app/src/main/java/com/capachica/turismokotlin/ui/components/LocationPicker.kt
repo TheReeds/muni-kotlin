@@ -104,12 +104,10 @@ fun LocationPicker(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Botón para usar ubicación actual
+                // Botón para usar ubicación actual con GeolocationHelper
                 if (onUseCurrentLocation != null) {
                     Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onUseCurrentLocation() },
+                        modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.primaryContainer
                         )
@@ -118,18 +116,36 @@ fun LocationPicker(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.MyLocation,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(
-                                text = "Usar mi ubicación actual",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.primary
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.MyLocation,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = "Usar mi ubicación actual",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            
+                            GeolocationHelper(
+                                onLocationObtained = { lat, lng ->
+                                    selectedLocation = Pair(lat, lng)
+                                    locationName = "Mi ubicación actual"
+                                },
+                                onError = { error ->
+                                    // Podrías mostrar un snackbar o mensaje de error aquí
+                                },
+                                onPermissionDenied = {
+                                    // Podrías mostrar un mensaje explicando por qué necesitas permisos
+                                }
                             )
                         }
                     }

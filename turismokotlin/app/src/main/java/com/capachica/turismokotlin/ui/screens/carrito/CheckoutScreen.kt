@@ -50,6 +50,8 @@ fun CheckoutScreen(
     // Manejar éxito en creación de reserva
     LaunchedEffect(crearReservaState) {
         if (crearReservaState is Result.Success) {
+            // Limpiar el estado para evitar múltiples navegaciones
+            carritoViewModel.clearReservaStates()
             onCheckoutSuccess((crearReservaState as Result.Success<ReservaCarritoResponse>).data.id)
         }
     }
