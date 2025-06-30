@@ -1,3 +1,4 @@
+// HomeScreen.kt actualizado con botón de logout
 package com.capachica.turismokotlin.ui.screens.home
 
 import androidx.compose.foundation.layout.*
@@ -24,7 +25,6 @@ import com.capachica.turismokotlin.ui.viewmodel.HomeUiState
 import com.capachica.turismokotlin.ui.viewmodel.HomeViewModel
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.navigation.NavHostController
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -39,10 +39,11 @@ fun HomeScreen(
     onNavigateToCart: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToChat: () -> Unit,
-    onNavigateToGestion: () -> Unit = {}, // NUEVO - Agregar este parámetro
+    onNavigateToGestion: () -> Unit = {},
     onNavigateToAdminDashboard: () -> Unit = {},
-    onNavigateToEmprendedorDashboard: () -> Unit = {}, // Mantener por compatibilidad
+    onNavigateToEmprendedorDashboard: () -> Unit = {},
     onNavigateToMunicipalidadDashboard: () -> Unit = {},
+    onLogout: () -> Unit = {}, // NUEVO - Callback para logout
     homeViewModel: HomeViewModel = hiltViewModel(),
     cartViewModel: CartViewModel = hiltViewModel(),
     authViewModel: AuthViewModel = hiltViewModel()
@@ -53,7 +54,8 @@ fun HomeScreen(
 
     var searchQuery by remember { mutableStateOf("") }
     var showSearchResults by remember { mutableStateOf(false) }
-    var searchType by remember { mutableStateOf("planes") } // "planes" o "servicios"
+    var searchType by remember { mutableStateOf("planes") }
+    var showLogoutDialog by remember { mutableStateOf(false) } // NUEVO
 
     // Para manejar el dialog de agregar servicio al carrito
     var showAddServiceDialog by remember { mutableStateOf(false) }
@@ -83,8 +85,49 @@ fun HomeScreen(
                     }
                 }
 
-                IconButton(onClick = onNavigateToProfile) {
-                    Icon(Icons.Default.Person, contentDescription = "Perfil")
+                // Menú desplegable con perfil y logout
+                var showMenu by remember { mutableStateOf(false) }
+
+                Box {
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(Icons.Default.Person, contentDescription = "Perfil")
+                    }
+
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Mi Perfil") },
+                            onClick = {
+                                showMenu = false
+                                onNavigateToProfile()
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Default.AccountCircle, contentDescription = null)
+                            }
+                        )
+
+                        Divider()
+
+                        DropdownMenuItem(
+                            text = { Text("Cerrar Sesión") },
+                            onClick = {
+                                showMenu = false
+                                showLogoutDialog = true
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Logout,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            },
+                            colors = MenuDefaults.itemColors(
+                                textColor = MaterialTheme.colorScheme.error
+                            )
+                        )
+                    }
                 }
             }
         )
@@ -224,7 +267,7 @@ fun HomeScreen(
                     uiState = uiState,
                     onNavigateToPlan = onNavigateToPlan,
                     onNavigateToEmprendedor = onNavigateToEmprendedor,
-                    onNavigateToServicioDetail = onNavigateToServicioDetail, // Agregar esta línea
+                    onNavigateToServicioDetail = onNavigateToServicioDetail,
                     onNavigateToMap = onNavigateToMap,
                     onNavigateToChat = onNavigateToChat,
                     onNavigateToAdminDashboard = onNavigateToAdminDashboard,
@@ -261,6 +304,48 @@ fun HomeScreen(
             }
         )
     }
+
+    // Dialog de confirmación de logout
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Logout,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Cerrar Sesión")
+                }
+            },
+            text = {
+                Text("¿Estás seguro de que deseas cerrar sesión?")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showLogoutDialog = false
+                        authViewModel.logout()
+                        onLogout()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Cerrar Sesión")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -271,7 +356,7 @@ private fun MainHomeContent(
     onNavigateToServicioDetail: (Long) -> Unit,
     onNavigateToMap: () -> Unit,
     onNavigateToChat: () -> Unit,
-    onNavigateToGestion: () -> Unit, // NUEVO - Agregar este parámetro
+    onNavigateToGestion: () -> Unit,
     onNavigateToAdminDashboard: () -> Unit,
     onNavigateToEmprendedorDashboard: () -> Unit,
     onNavigateToMunicipalidadDashboard: () -> Unit,
@@ -314,7 +399,7 @@ private fun MainHomeContent(
                         QuickActionCard(
                             title = "Gestión",
                             icon = Icons.Default.BusinessCenter,
-                            onClick = onNavigateToGestion // Nuevo callback
+                            onClick = onNavigateToGestion
                         )
                     }
                 }
@@ -415,7 +500,7 @@ private fun MainHomeContent(
                     servicio = servicio,
                     onAddToCart = { onAddServiceToCart(servicio) },
                     onNavigateToEmprendedor = { onNavigateToEmprendedor(servicio.emprendedor.id) },
-                    onNavigateToDetail = { onNavigateToServicioDetail(servicio.id) } // Agregar esta línea
+                    onNavigateToDetail = { onNavigateToServicioDetail(servicio.id) }
                 )
             }
         }
@@ -490,7 +575,7 @@ private fun SearchResultsContent(
     isSearching: Boolean,
     onNavigateToPlan: (Long) -> Unit,
     onNavigateToEmprendedor: (Long) -> Unit,
-    onNavigateToServicioDetail: (Long) -> Unit, // Agregar este parámetro
+    onNavigateToServicioDetail: (Long) -> Unit,
     onAddServiceToCart: (Servicio) -> Unit
 ) {
     LazyColumn(
@@ -541,7 +626,7 @@ private fun SearchResultsContent(
                         servicio = servicio,
                         onAddToCart = { onAddServiceToCart(servicio) },
                         onNavigateToEmprendedor = { onNavigateToEmprendedor(servicio.emprendedor.id) },
-                        onNavigateToDetail = { onNavigateToServicioDetail(servicio.id) } // Agregar esta línea
+                        onNavigateToDetail = { onNavigateToServicioDetail(servicio.id) }
                     )
                 }
             }
