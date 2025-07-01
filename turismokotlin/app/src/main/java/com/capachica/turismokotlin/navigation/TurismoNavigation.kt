@@ -38,6 +38,7 @@ import com.capachica.turismokotlin.ui.screens.gestion.GestionScreen
 import com.capachica.turismokotlin.ui.screens.gestion.GestionServiciosScreen
 import com.capachica.turismokotlin.ui.screens.gestion.GestionPlanesScreen
 import com.capachica.turismokotlin.ui.screens.gestion.GestionReservasScreen
+import com.capachica.turismokotlin.ui.screens.reservas.MisReservasPlanesScreen
 
 @Composable
 fun TurismoNavigation(
@@ -191,6 +192,19 @@ fun TurismoNavigation(
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToReservaDetail = { reservaId ->
                         navController.navigate("reserva_detail/$reservaId")
+                    },
+                    onNavigateToMisReservasPlanes = { // NUEVO
+                        navController.navigate("mis_reservas_planes")
+                    }
+                )
+            }
+
+            // Nueva ruta para reservas de planes
+            composable("mis_reservas_planes") {
+                MisReservasPlanesScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToPlanDetail = { planId ->
+                        navController.navigate("plan_detail/$planId")
                     }
                 )
             }

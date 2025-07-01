@@ -10,6 +10,7 @@ import javax.inject.Singleton
 class ReservasPlanesRepository @Inject constructor(
     private val reservasPlanesApiService: ReservasPlanesApiService
 ) {
+
     suspend fun createReservaPlan(request: CreateReservaPlanRequest): Result<ReservaPlan> {
         return try {
             val response = reservasPlanesApiService.createReservaPlan(request)
@@ -53,6 +54,19 @@ class ReservasPlanesRepository @Inject constructor(
         }
     }
 
+    suspend fun getReservasByPlan(planId: Long): Result<List<ReservaPlan>> {
+        return try {
+            val response = reservasPlanesApiService.getReservasByPlan(planId)
+            if (response.isSuccessful) {
+                Result.success(response.body() ?: emptyList())
+            } else {
+                Result.failure(Exception("Error al obtener reservas del plan: ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun confirmarReservaPlan(reservaId: Long): Result<ReservaPlan> {
         return try {
             val response = reservasPlanesApiService.confirmarReservaPlan(reservaId)
@@ -82,7 +96,8 @@ class ReservasPlanesRepository @Inject constructor(
             Result.failure(e)
         }
     }
-    suspend fun ReservasPlanesRepository.completarReservaPlan(reservaId: Long): Result<ReservaPlan> {
+
+    suspend fun completarReservaPlan(reservaId: Long): Result<ReservaPlan> {
         return try {
             val response = reservasPlanesApiService.completarReservaPlan(reservaId)
             if (response.isSuccessful) {

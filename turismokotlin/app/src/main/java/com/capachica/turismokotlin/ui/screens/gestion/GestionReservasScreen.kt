@@ -80,15 +80,17 @@ fun GestionReservasScreen(
                 icon = {
                     BadgedBox(
                         badge = {
-                            if (planesState.reservasPlanes.count { it.estado == EstadoServicio.ACTIVO } > 0) {
+                            val cantidad = planesState.reservasPlanes.count { it.estado == EstadoReserva.CONFIRMADA } // o COMPLETADA, PENDIENTE, etc.
+                            if (cantidad > 0) {
                                 Badge {
-                                    Text("${planesState.reservasPlanes.count { it.estado == EstadoServicio.ACTIVO }}")
+                                    Text("$cantidad")
                                 }
                             }
                         }
                     ) {
                         Icon(Icons.Default.Map, contentDescription = null)
                     }
+
                 }
             )
         }
@@ -288,9 +290,9 @@ private fun ReservasPlanesTab(
         }
 
         else -> {
-            val reservasPendientes = reservas.filter { it.estado == EstadoServicio.ACTIVO }
-            val reservasConfirmadas = reservas.filter { it.estado == EstadoServicio.ACTIVO }
-            val reservasCompletadas = reservas.filter { it.estado == EstadoServicio.ACTIVO }
+            val reservasPendientes = reservas.filter { it.estado == EstadoReserva.PENDIENTE }
+            val reservasConfirmadas = reservas.filter { it.estado == EstadoReserva.CONFIRMADA }
+            val reservasCompletadas = reservas.filter { it.estado == EstadoReserva.COMPLETADA }
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),

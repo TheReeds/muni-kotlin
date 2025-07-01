@@ -11,27 +11,29 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ReservasPlanesApiService {
-    @POST("reservas-planes/crear")
+
+    // Usar el endpoint correcto de la documentación
+    @POST("reservas")
     suspend fun createReservaPlan(@Body request: CreateReservaPlanRequest): Response<ReservaPlan>
 
-    @GET("reservas-planes/mis-reservas")
+    @GET("reservas/mis-reservas")
     suspend fun getMisReservasPlanes(): Response<List<ReservaPlan>>
 
-    @GET("reservas-planes/{id}")
+    @GET("reservas/{id}")
     suspend fun getReservaPlanById(@Path("id") reservaId: Long): Response<ReservaPlan>
 
-    @PATCH("reservas-planes/{id}/confirmar")
+    @GET("reservas/plan/{planId}")
+    suspend fun getReservasByPlan(@Path("planId") planId: Long): Response<List<ReservaPlan>>
+
+    @PATCH("reservas/{id}/confirmar")
     suspend fun confirmarReservaPlan(@Path("id") reservaId: Long): Response<ReservaPlan>
 
-    @PATCH("reservas-planes/{id}/cancelar")
+    @PATCH("reservas/{id}/cancelar")
     suspend fun cancelarReservaPlan(
         @Path("id") reservaId: Long,
         @Query("motivo") motivo: String
     ): Response<ReservaPlan>
 
-    @PATCH("reservas-planes/{id}/completar")
+    @PATCH("reservas/{id}/completar")
     suspend fun completarReservaPlan(@Path("id") reservaId: Long): Response<ReservaPlan>
-
-    @GET("reservas-planes/estado/{estado}")
-    suspend fun getReservasPlanByEstado(@Path("estado") estado: String): Response<List<ReservaPlan>>
 }

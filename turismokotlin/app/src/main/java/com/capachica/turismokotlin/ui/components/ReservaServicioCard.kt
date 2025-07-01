@@ -20,7 +20,10 @@ fun ReservaServicioCard(
     reserva: ReservaCarrito,
     onConfirmarClick: () -> Unit,
     onCompletarClick: () -> Unit,
-    isOperating: Boolean
+    onCancelarClick: () -> Unit = {}, // Nuevo
+    isOperating: Boolean = false,
+    showActions: Boolean = true // NUEVO parámetro
+
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -196,16 +199,5 @@ private fun getEstadoColor(estado: EstadoReserva): androidx.compose.ui.graphics.
         EstadoReserva.CONFIRMADA -> MaterialTheme.colorScheme.primaryContainer
         EstadoReserva.COMPLETADA -> MaterialTheme.colorScheme.tertiaryContainer
         EstadoReserva.CANCELADA -> MaterialTheme.colorScheme.errorContainer
-    }
-}
-
-fun formatFecha(fechaString: String): String {
-    return try {
-        val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val outputFormat = SimpleDateFormat("dd MMM yyyy", Locale("es", "ES"))
-        val fecha = inputFormat.parse(fechaString)
-        outputFormat.format(fecha ?: Date())
-    } catch (e: Exception) {
-        fechaString
     }
 }

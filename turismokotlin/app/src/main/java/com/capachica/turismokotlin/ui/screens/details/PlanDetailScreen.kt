@@ -110,12 +110,13 @@ fun PlanDetailScreen(
                 showReservaDialog = false
                 reservaViewModel.clearMessages()
             },
-            onConfirm = { cantidad, fechaInicio, observaciones, contactoEmergencia, telefonoEmergencia, metodoPago ->
+            onConfirm = { numeroPersonas, fechaInicio, observaciones, solicitudesEspeciales, contactoEmergencia, telefonoEmergencia, metodoPago ->
                 reservaViewModel.crearReservaPlan(
                     planId = uiState.plan!!.id,
-                    cantidad = cantidad,
+                    numeroPersonas = numeroPersonas,
                     fechaInicio = fechaInicio,
                     observaciones = observaciones,
+                    solicitudesEspeciales = solicitudesEspeciales,
                     contactoEmergencia = contactoEmergencia,
                     telefonoEmergencia = telefonoEmergencia,
                     metodoPago = metodoPago
@@ -590,11 +591,12 @@ private fun ReservaPlanDialog(
     plan: Plan,
     reservaState: PlanReservaUiState,
     onDismiss: () -> Unit,
-    onConfirm: (Int, String, String?, String?, String?, MetodoPago) -> Unit
+    onConfirm: (Int, String, String?, String?, String?, String?, Any?) -> Unit
 ) {
-    var cantidad by remember { mutableStateOf(1) }
+    var numeroPersonas by remember { mutableStateOf(1) }
     var fechaInicio by remember { mutableStateOf("") }
     var observaciones by remember { mutableStateOf("") }
+    var solicitudesEspeciales by remember { mutableStateOf("") }
     var contactoEmergencia by remember { mutableStateOf("") }
     var telefonoEmergencia by remember { mutableStateOf("") }
     var metodoPago by remember { mutableStateOf(MetodoPago.EFECTIVO) }
@@ -635,11 +637,11 @@ private fun ReservaPlanDialog(
 
                 item {
                     OutlinedTextField(
-                        value = cantidad.toString(),
+                        value = numeroPersonas.toString(),
                         onValueChange = { newValue ->
                             newValue.toIntOrNull()?.let {
                                 if (it > 0 && it <= plan.capacidadMaxima) {
-                                    cantidad = it
+                                    numeroPersonas = it
                                 }
                             }
                         },
@@ -658,6 +660,28 @@ private fun ReservaPlanDialog(
                         placeholder = { Text("YYYY-MM-DD") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
+                    )
+                }
+
+                item {
+                    OutlinedTextField(
+                        value = observaciones,
+                        onValueChange = { observaciones = it },
+                        label = { Text("Observaciones") },
+                        placeholder = { Text("Observaciones generales...") },
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 3
+                    )
+                }
+
+                item {
+                    OutlinedTextField(
+                        value = solicitudesEspeciales,
+                        onValueChange = { solicitudesEspeciales = it },
+                        label = { Text("Solicitudes especiales") },
+                        placeholder = { Text("Solicitudes especiales...") },
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 3
                     )
                 }
 
@@ -718,17 +742,6 @@ private fun ReservaPlanDialog(
                 }
 
                 item {
-                    OutlinedTextField(
-                        value = observaciones,
-                        onValueChange = { observaciones = it },
-                        label = { Text("Observaciones (opcional)") },
-                        placeholder = { Text("Solicitudes especiales...") },
-                        modifier = Modifier.fillMaxWidth(),
-                        maxLines = 3
-                    )
-                }
-
-                item {
                     Card(
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.primaryContainer
@@ -743,7 +756,7 @@ private fun ReservaPlanDialog(
                         ) {
                             Text("Total a pagar:")
                             Text(
-                                text = "S/ ${plan.precioTotal * cantidad}",
+                                text = "S/ ${plan.precioTotal * numeroPersonas}",
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
@@ -767,15 +780,32 @@ private fun ReservaPlanDialog(
                         }
                     }
                 }
+
+                if (reservaState.successMessage != null) {
+                    item {
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                            )
+                        ) {
+                            Text(
+                                text = reservaState.successMessage,
+                                modifier = Modifier.padding(12.dp),
+                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
+                        }
+                    }
+                }
             }
         },
         confirmButton = {
             Button(
                 onClick = {
                     onConfirm(
-                        cantidad,
+                        numeroPersonas,
                         fechaInicio,
                         observaciones.takeIf { it.isNotBlank() },
+                        solicitudesEspeciales.takeIf { it.isNotBlank() },
                         contactoEmergencia.takeIf { it.isNotBlank() },
                         telefonoEmergencia.takeIf { it.isNotBlank() },
                         metodoPago

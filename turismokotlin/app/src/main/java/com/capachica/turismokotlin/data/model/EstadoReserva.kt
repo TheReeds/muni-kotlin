@@ -6,10 +6,10 @@ enum class EstadoReserva {
     @SerializedName("PENDIENTE")
     PENDIENTE,
 
-    @SerializedName("CONFIRMADO")
+    @SerializedName("CONFIRMADA")
     CONFIRMADA,
 
-    @SerializedName("COMPLETADO")
+    @SerializedName("COMPLETADA")
     COMPLETADA,
 
     @SerializedName("CANCELADA")

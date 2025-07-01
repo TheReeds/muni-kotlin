@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.capachica.turismokotlin.data.model.CreateReservaPlanRequest
 import com.capachica.turismokotlin.data.model.MetodoPago
 import com.capachica.turismokotlin.data.model.ReservaPlan
+import com.capachica.turismokotlin.data.model.ServicioPersonalizadoRequest
 import com.capachica.turismokotlin.data.repository.ReservasPlanesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,24 +24,28 @@ class PlanReservaViewModel @Inject constructor(
 
     fun crearReservaPlan(
         planId: Long,
-        cantidad: Int,
+        numeroPersonas: Int,
         fechaInicio: String,
         observaciones: String? = null,
+        solicitudesEspeciales: String? = null,
         contactoEmergencia: String? = null,
         telefonoEmergencia: String? = null,
-        metodoPago: MetodoPago = MetodoPago.EFECTIVO
+        metodoPago: Any? = MetodoPago.EFECTIVO,
+        serviciosPersonalizados: List<ServicioPersonalizadoRequest> = emptyList()
     ) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
             val request = CreateReservaPlanRequest(
                 planId = planId,
-                cantidad = cantidad,
                 fechaInicio = fechaInicio,
+                numeroPersonas = numeroPersonas,
                 observaciones = observaciones,
+                solicitudesEspeciales = solicitudesEspeciales,
                 contactoEmergencia = contactoEmergencia,
                 telefonoEmergencia = telefonoEmergencia,
-                metodoPago = metodoPago
+                metodoPago = metodoPago,
+                serviciosPersonalizados = serviciosPersonalizados
             )
 
             reservasPlanesRepository.createReservaPlan(request)
@@ -48,13 +53,55 @@ class PlanReservaViewModel @Inject constructor(
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         reservaCreada = reserva,
-                        successMessage = "Reserva de plan creada exitosamente"
+                        successMessage = "Reserva creada exitosamente con código: ${reserva.codigoReserva}"
                     )
                 }
                 .onFailure { exception ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         error = exception.message ?: "Error al crear la reserva"
+                    )
+                }
+        }
+    }
+
+    fun confirmarReserva(reservaId: Long) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+
+            reservasPlanesRepository.confirmarReservaPlan(reservaId)
+                .onSuccess { reserva ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        reservaCreada = reserva,
+                        successMessage = "Reserva confirmada exitosamente"
+                    )
+                }
+                .onFailure { exception ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = exception.message ?: "Error al confirmar la reserva"
+                    )
+                }
+        }
+    }
+
+    fun cancelarReserva(reservaId: Long, motivo: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+
+            reservasPlanesRepository.cancelarReservaPlan(reservaId, motivo)
+                .onSuccess { reserva ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        reservaCreada = reserva,
+                        successMessage = "Reserva cancelada exitosamente"
+                    )
+                }
+                .onFailure { exception ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = exception.message ?: "Error al cancelar la reserva"
                     )
                 }
         }
